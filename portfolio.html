@@ -1,0 +1,3221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0f1f3d;
+    --navy-light: #1a3057;
+    --gold: #c9a84c;
+    --gold-light: #e8c96a;
+    --cream: #f8f5ef;
+    --white: #ffffff;
+    --text-dark: #1a1a2e;
+    --text-mid: #4a5568;
+    --text-light: #718096;
+    --border: #e2d9cc;
+    --radius: 12px;
+    --radius-lg: 20px;
+    --shadow: 0 4px 24px rgba(15,31,61,0.10);
+    --shadow-lg: 0 12px 48px rgba(15,31,61,0.16);
+    --transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(15,31,61,0.97);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .nav-links { display: flex; gap: 0.25rem; }
+  .nav-link {
+    color: rgba(255,255,255,0.75);
+    background: none; border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.3px;
+  }
+  .nav-link:hover, .nav-link.active {
+    color: var(--gold);
+    background: rgba(201,168,76,0.12);
+  }
+  .hamburger {
+    display: none; flex-direction: column; gap: 5px;
+    background: none; border: none; cursor: pointer; padding: 4px;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--gold); border-radius: 2px;
+    transition: var(--transition);
+  }
+  .mobile-menu {
+    display: none; position: fixed; top: 64px; left: 0; right: 0;
+    background: rgba(15,31,61,0.98);
+    flex-direction: column; padding: 1rem;
+    z-index: 99;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu .nav-link { width: 100%; text-align: left; padding: 0.75rem 1rem; }
+
+  /* ── PAGES ── */
+  .page { display: none; padding-top: 64px; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ── HOME PAGE ── */
+  #page-home {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, #0f2d4a 100%);
+  }
+  .home-hero {
+    display: grid;
+    grid-template-columns: 48% 52%;
+    gap: 2%;
+    align-items: center;
+    width: 92%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding-top: clamp(1.5rem, 3vh, 3rem);
+    padding-bottom: clamp(1.5rem, 3vh, 3rem);
+    box-sizing: border-box;
+  }
+  .home-photo-side {
+    display: flex; justify-content: center; align-items: center;
+    position: relative; overflow: visible;
+  }
+  .photo-frame {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    height: clamp(380px, 50vw, 560px);
+    border-radius: 220px 220px 180px 180px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.35), 0 0 0 6px rgba(201,168,76,0.2);
+  }
+
+  /* Glow ring behind the person */
+  .photo-frame::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(15,31,61,0.45) 100%);
+    pointer-events: none; z-index: 3;
+  }
+
+  /* Decorative gold arc behind person */
+  .photo-arc { display: none; }
+
+  /* Floating dots decoration */
+  .photo-dots {
+    position: absolute; top: 40px; right: -30px; z-index: 0; pointer-events: none;
+    display: grid; grid-template-columns: repeat(5,1fr); gap: 10px;
+  }
+  .photo-dots span {
+    display: block; width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(201,168,76,0.4);
+  }
+
+  @keyframes floatPerson {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(0px); }
+  }
+
+  /* Photo image — fills entire frame */
+  .photo-display {
+    position: absolute; z-index: 2;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: none;
+  }
+
+  /* Canvas output — fills entire frame */
+  #photo-canvas {
+    position: absolute; z-index: 2;
+    width: 100% !important; height: 100% !important;
+    object-fit: cover;
+    display: none;
+  }
+
+  .photo-upload-area {
+    position: relative; z-index: 2;
+    width: 100%; height: 100%;
+    border: 2px dashed rgba(201,168,76,0.45);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1rem; cursor: pointer;
+    transition: var(--transition);
+    background: rgba(255,255,255,0.03);
+    border-radius: inherit;
+  }
+  .photo-upload-area:hover { border-color: var(--gold); background: rgba(201,168,76,0.07); }
+  .photo-upload-area svg { opacity: 0.7; }
+  .photo-upload-area p { color: rgba(255,255,255,0.65); font-size: 0.875rem; text-align: center; line-height: 1.5; }
+
+  /* Badge on photo */
+  .photo-badge {
+    position: absolute; bottom: -20px; left: -10px; z-index: 4;
+    background: white; border-radius: 12px;
+    padding: 0.6rem 1rem; box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    display: flex; align-items: center; gap: 0.6rem;
+    animation: none;
+    opacity: 0; transition: opacity 0.5s;
+  }
+  .photo-badge.show { opacity: 1; }
+  .photo-badge-icon { font-size: 1.2rem; }
+  .photo-badge-text p { font-size: 0.7rem; color: #888; margin: 0; }
+  .photo-badge-text strong { font-size: 0.82rem; color: #1a1a2e; font-weight: 700; }
+
+  /* BG remove toggle btn */
+  .bg-remove-btn {
+    position: absolute; top: -40px; right: 0; z-index: 5;
+    background: rgba(15,31,61,0.82); color: white;
+    border: 1px solid rgba(201,168,76,0.4); border-radius: 100px;
+    padding: 0.35rem 0.9rem; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: var(--transition); display: none; white-space: nowrap;
+    backdrop-filter: blur(6px);
+  }
+  .bg-remove-btn.visible { display: block; }
+  .bg-remove-btn:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+  #photo-file-input { display: none; }
+  /* Hidden canvas for processing */
+  #processing-canvas { display: none; position:absolute; visibility:hidden; }
+
+  .home-text-side { color: white; }
+  .home-eyebrow {
+    display: inline-block;
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+    font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 0.375rem 1rem; border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+  .home-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.15; color: white;
+    margin-bottom: 0.5rem;
+  }
+  .home-title {
+    font-size: 1.125rem; font-weight: 400;
+    color: var(--gold); margin-bottom: 1.5rem;
+    font-style: italic;
+  }
+  .home-bio {
+    font-size: 1rem; line-height: 1.8;
+    color: rgba(255,255,255,0.78);
+    margin-bottom: 2rem;
+    max-width: 460px;
+  }
+  .home-stats {
+    display: flex; gap: 2rem; margin-bottom: 2.5rem;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem; color: var(--gold); display: block;
+  }
+  .stat-label { font-size: 0.75rem; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; }
+  .home-cta { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--gold); color: var(--navy);
+    border: none; padding: 0.75rem 1.75rem;
+    border-radius: 100px; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: var(--transition);
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .btn-outline {
+    background: transparent; color: white;
+    border: 1.5px solid rgba(255,255,255,0.35);
+    padding: 0.75rem 1.75rem; border-radius: 100px;
+    font-size: 0.9rem; font-weight: 500; cursor: pointer;
+    transition: var(--transition); font-family: 'Inter', sans-serif;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Editable fields */
+  .editable {
+    background: none; border: none; outline: none;
+    font-family: inherit; color: inherit;
+    width: 100%; cursor: text;
+  }
+  .editable:focus {
+    background: rgba(255,255,255,0.07);
+    border-radius: 6px; padding: 2px 6px;
+    margin: -2px -6px;
+  }
+  .editable[placeholder]:empty::before {
+    content: attr(placeholder);
+    opacity: 0.45;
+  }
+
+  /* Home sections below hero */
+  .home-sections { background: var(--cream); }
+  .section-container { max-width: 1100px; margin: 0 auto; padding: clamp(3rem, 5vw, 5rem) clamp(1.25rem, 3vw, 2rem); }
+  .section-header { text-align: center; margin-bottom: 3.5rem; }
+  .section-eyebrow {
+    display: inline-block; color: var(--gold);
+    font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    color: var(--navy);
+  }
+  .section-divider {
+    width: 48px; height: 3px;
+    background: var(--gold); border-radius: 2px;
+    margin: 1rem auto 0;
+  }
+  .services-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+  .service-card {
+    background: white; border-radius: var(--radius-lg);
+    padding: 2rem; border: 1px solid var(--border);
+    transition: var(--transition); box-shadow: var(--shadow);
+  }
+  .service-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .service-icon {
+    width: 52px; height: 52px;
+    background: rgba(201,168,76,0.12);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+    font-size: 1.5rem;
+  }
+  .service-title { font-weight: 600; font-size: 1rem; color: var(--navy); margin-bottom: 0.5rem; }
+  .service-desc { font-size: 0.875rem; color: var(--text-mid); line-height: 1.6; }
+
+  /* ── PROFILE PAGE ── */
+  #page-profile { background: var(--cream); }
+  .profile-layout {
+    display: grid; grid-template-columns: 280px 1fr;
+    gap: 2.5rem; max-width: 1100px; margin: 0 auto;
+    padding: clamp(1.5rem, 3vw, 3rem) clamp(1.25rem, 3vw, 2rem);
+  }
+  .profile-sidebar {
+    position: sticky; top: 80px; height: fit-content;
+  }
+  .profile-card {
+    background: white; border-radius: var(--radius-lg);
+    padding: 2rem; border: 1px solid var(--border);
+    box-shadow: var(--shadow); text-align: center;
+  }
+  .profile-avatar {
+    width: 100px; height: 100px;
+    border-radius: 50%; object-fit: cover;
+    border: 3px solid var(--gold); margin: 0 auto 1rem;
+    display: block; background: var(--navy-light);
+  }
+  .profile-name-card { font-weight: 700; font-size: 1.1rem; color: var(--navy); }
+  .profile-role-card { font-size: 0.85rem; color: var(--text-light); margin-bottom: 1.25rem; }
+  .profile-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+  .badge {
+    background: rgba(15,31,61,0.07);
+    color: var(--navy); font-size: 0.7rem; font-weight: 500;
+    padding: 0.25rem 0.65rem; border-radius: 100px;
+  }
+  .profile-content {}
+  .content-card {
+    background: white; border-radius: var(--radius-lg);
+    padding: 2rem; border: 1px solid var(--border);
+    box-shadow: var(--shadow); margin-bottom: 1.5rem;
+  }
+  .content-card-title {
+    font-weight: 700; font-size: 1rem; color: var(--navy);
+    margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .content-card-title span { font-size: 1.2rem; }
+
+  /* Skills */
+  .skill-item { margin-bottom: 1.25rem; }
+  .skill-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .skill-name { font-size: 0.9rem; font-weight: 500; color: var(--text-dark); }
+  .skill-pct { font-size: 0.8rem; color: var(--text-light); }
+  .skill-bar {
+    height: 7px; background: #ebe6de;
+    border-radius: 100px; overflow: hidden;
+  }
+  .skill-fill {
+    height: 100%; background: linear-gradient(90deg, var(--navy), var(--gold));
+    border-radius: 100px; transition: width 1s ease;
+  }
+  .add-skill-form { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+  .add-skill-form input[type="text"] {
+    flex: 1; min-width: 140px;
+    padding: 0.5rem 0.875rem; border-radius: 8px;
+    border: 1px solid var(--border); font-size: 0.875rem;
+    font-family: 'Inter', sans-serif; background: var(--cream);
+    color: var(--text-dark); outline: none;
+  }
+  .add-skill-form input[type="text"]:focus { border-color: var(--gold); }
+  .add-skill-form input[type="range"] { flex: 1; min-width: 100px; }
+  .btn-add {
+    background: var(--navy); color: white;
+    border: none; padding: 0.5rem 1.25rem;
+    border-radius: 8px; font-size: 0.875rem; font-weight: 500;
+    cursor: pointer; transition: var(--transition); font-family: 'Inter', sans-serif;
+  }
+  .btn-add:hover { background: var(--navy-light); }
+  .btn-delete {
+    background: none; border: none; cursor: pointer;
+    color: #e57373; font-size: 0.85rem; padding: 2px 6px;
+    border-radius: 4px; transition: var(--transition);
+  }
+  .btn-delete:hover { background: #fde8e8; }
+
+  /* Timeline */
+  .timeline { position: relative; padding-left: 1.5rem; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0; top: 6px; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .tl-item { position: relative; margin-bottom: 2rem; }
+  .tl-dot {
+    position: absolute; left: -1.5rem; top: 5px;
+    width: 10px; height: 10px;
+    background: var(--gold); border-radius: 50%;
+    border: 2px solid var(--cream);
+    transform: translateX(-4px);
+  }
+  .tl-period { font-size: 0.75rem; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; }
+  .tl-title { font-weight: 600; font-size: 0.95rem; color: var(--navy); }
+  .tl-org { font-size: 0.85rem; color: var(--text-mid); }
+
+  /* ── CERTIFICATE PAGE ── */
+  #page-certificate { background: var(--cream); }
+  .cert-container { max-width: 900px; margin: 0 auto; padding: clamp(1.5rem, 3vw, 3rem) clamp(1.25rem, 3vw, 2rem); }
+  .cert-page-title { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--navy); margin-bottom: 0.5rem; }
+  .cert-page-sub { color: var(--text-mid); font-size: 0.95rem; margin-bottom: 2.5rem; }
+
+  .cert-card {
+    background: white; border-radius: var(--radius-lg);
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    overflow: hidden; margin-bottom: 1.5rem;
+    transition: var(--transition);
+  }
+  .cert-card:hover { box-shadow: var(--shadow-lg); }
+  .cert-card-header {
+    background: var(--navy); color: white;
+    padding: 1.25rem 1.75rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .cert-badge {
+    background: rgba(201,168,76,0.2); color: var(--gold);
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; padding: 0.25rem 0.75rem; border-radius: 100px;
+  }
+  .cert-card-body { padding: 1.75rem; }
+  .cert-info-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem; margin-bottom: 1.25rem;
+  }
+  .cert-info-item { }
+  .cert-info-label { font-size: 0.7rem; font-weight: 600; color: var(--text-light); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.25rem; }
+  .cert-info-value { font-size: 0.9rem; color: var(--text-dark); font-weight: 500; }
+  .cert-img-preview {
+    width: 100%; max-height: 200px; object-fit: cover;
+    border-radius: 8px; border: 1px solid var(--border); display: block;
+  }
+  .cert-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+  .btn-sm {
+    padding: 0.4rem 1rem; border-radius: 8px;
+    font-size: 0.8rem; font-weight: 500; cursor: pointer;
+    transition: var(--transition); font-family: 'Inter', sans-serif;
+    border: 1px solid var(--border); background: white; color: var(--text-dark);
+  }
+  .btn-sm:hover { background: var(--cream); }
+  .btn-sm.danger { color: #c62828; border-color: #fca5a5; }
+  .btn-sm.danger:hover { background: #fde8e8; }
+
+  .add-cert-form {
+    background: white; border-radius: var(--radius-lg);
+    border: 2px dashed var(--border); padding: 2rem;
+    margin-top: 1rem;
+  }
+  .add-cert-form h3 { font-size: 1rem; font-weight: 600; color: var(--navy); margin-bottom: 1.5rem; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-field { display: flex; flex-direction: column; gap: 0.375rem; }
+  .form-field label { font-size: 0.75rem; font-weight: 600; color: var(--text-mid); letter-spacing: 0.5px; }
+  .form-field input, .form-field textarea, .form-field select {
+    padding: 0.55rem 0.875rem; border-radius: 8px;
+    border: 1px solid var(--border); font-size: 0.875rem;
+    font-family: 'Inter', sans-serif; background: var(--cream);
+    color: var(--text-dark); outline: none; transition: var(--transition);
+  }
+  .form-field input:focus, .form-field textarea:focus { border-color: var(--gold); background: white; }
+  .form-field.full { grid-column: 1 / -1; }
+  .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
+  .cert-upload-zone {
+    border: 1.5px dashed var(--border); border-radius: 10px;
+    padding: 1.5rem; text-align: center; cursor: pointer;
+    transition: var(--transition); background: var(--cream);
+  }
+  .cert-upload-zone:hover { border-color: var(--gold); background: rgba(201,168,76,0.04); }
+  .cert-upload-zone p { font-size: 0.8rem; color: var(--text-light); margin-top: 0.5rem; }
+  #cert-file-input { display: none; }
+
+  /* ── CONTACT PAGE ── */
+  #page-contact {
+    background: linear-gradient(160deg, var(--navy) 0%, #0d2540 100%);
+    min-height: 100vh;
+  }
+  .contact-layout {
+    display: grid; grid-template-columns: 1fr 1.2fr;
+    gap: clamp(2rem, 4vw, 4rem); max-width: 1100px; margin: 0 auto;
+    padding: clamp(2rem, 4vw, 4rem) clamp(1.25rem, 3vw, 2rem);
+  }
+  .contact-info { color: white; }
+  .contact-eyebrow { color: var(--gold); font-size: 0.75rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1rem; }
+  .contact-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    line-height: 1.2; margin-bottom: 1.25rem;
+  }
+  .contact-desc { color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.8; margin-bottom: 2.5rem; }
+  .contact-methods { display: flex; flex-direction: column; gap: 1.25rem; }
+  .contact-method {
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .method-icon {
+    width: 44px; height: 44px;
+    background: rgba(201,168,76,0.15); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .method-label { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-bottom: 0.1rem; }
+  .method-value { font-size: 0.9rem; color: white; font-weight: 500; }
+
+  .contact-form-wrap {
+    background: white; border-radius: var(--radius-lg);
+    padding: 2.5rem; box-shadow: var(--shadow-lg);
+  }
+  .contact-form-wrap h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; color: var(--navy); margin-bottom: 1.75rem;
+  }
+  .contact-form { display: flex; flex-direction: column; gap: 1rem; }
+  .contact-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .contact-form input, .contact-form textarea, .contact-form select {
+    width: 100%; padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.9rem; font-family: 'Inter', sans-serif;
+    background: var(--cream); color: var(--text-dark); outline: none;
+    transition: var(--transition);
+  }
+  .contact-form input:focus, .contact-form textarea:focus { border-color: var(--gold); background: white; }
+  .contact-form textarea { resize: vertical; min-height: 120px; }
+  .contact-form label { font-size: 0.75rem; font-weight: 600; color: var(--text-mid); letter-spacing: 0.5px; display: block; margin-bottom: 0.375rem; }
+  .submit-btn {
+    background: var(--navy); color: white;
+    border: none; padding: 0.85rem 2rem; border-radius: 100px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer;
+    font-family: 'Inter', sans-serif; transition: var(--transition); width: 100%;
+    margin-top: 0.5rem;
+  }
+  .submit-btn:hover { background: var(--navy-light); transform: translateY(-2px); }
+  .form-success {
+    display: none; text-align: center; padding: 2rem;
+    color: #2e7d32; background: #e8f5e9; border-radius: 10px; margin-top: 1rem;
+  }
+  .form-success.show { display: block; }
+
+  /* ── AUTH / LOGIN ── */
+  #auth-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10,18,35,0.82);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.35s;
+  }
+  #auth-overlay.show { opacity: 1; pointer-events: all; }
+  .auth-modal {
+    background: white; border-radius: 20px;
+    padding: 2.5rem 2rem; width: 100%; max-width: 400px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+    text-align: center; position: relative;
+    animation: slideUp 0.35s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .auth-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; color: var(--navy); margin-bottom: 0.25rem;
+  }
+  .auth-sub { font-size: 0.8rem; color: var(--text-light); margin-bottom: 2rem; }
+  .auth-lock-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(15,31,61,0.07);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem; font-size: 1.5rem;
+  }
+  .auth-label { font-size: 0.75rem; font-weight: 600; color: var(--text-mid); letter-spacing: 0.5px; text-align: left; display: block; margin-bottom: 0.4rem; }
+  .auth-input {
+    width: 100%; padding: 0.7rem 1rem;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.95rem; font-family: 'Inter', sans-serif;
+    background: var(--cream); color: var(--text-dark); outline: none;
+    transition: var(--transition); text-align: center; letter-spacing: 3px;
+    margin-bottom: 0.75rem;
+  }
+  .auth-input:focus { border-color: var(--gold); background: white; }
+  .auth-btn {
+    width: 100%; padding: 0.8rem;
+    background: var(--navy); color: white;
+    border: none; border-radius: 100px;
+    font-size: 0.9rem; font-weight: 600;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    transition: var(--transition); margin-top: 0.25rem;
+  }
+  .auth-btn:hover { background: var(--navy-light); }
+  .auth-error {
+    color: #c62828; font-size: 0.8rem; margin-top: 0.5rem;
+    min-height: 1.2rem; display: block;
+  }
+  .auth-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none; font-size: 1.1rem;
+    cursor: pointer; color: var(--text-light); padding: 4px 8px;
+    border-radius: 6px; transition: var(--transition);
+  }
+  .auth-close:hover { background: var(--cream); color: var(--text-dark); }
+
+  /* Forgot password panels */
+  .auth-panel { display: none; }
+  .auth-panel.active { display: block; }
+  .auth-back-link {
+    background: none; border: none; color: var(--gold);
+    font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    font-family: 'Inter', sans-serif; margin-bottom: 1.25rem;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0; transition: var(--transition);
+  }
+  .auth-back-link:hover { color: var(--navy); }
+  .auth-forgot-link {
+    background: none; border: none; color: var(--text-light);
+    font-size: 0.78rem; cursor: pointer; font-family: 'Inter', sans-serif;
+    margin-top: 0.75rem; display: block; text-align: center;
+    transition: var(--transition); text-decoration: underline;
+  }
+  .auth-forgot-link:hover { color: var(--navy); }
+  .otp-inputs {
+    display: flex; gap: 0.5rem; justify-content: center; margin: 0.75rem 0;
+  }
+  .otp-inputs input {
+    width: 44px; height: 52px; text-align: center;
+    font-size: 1.3rem; font-weight: 700; font-family: 'Inter', sans-serif;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    background: var(--cream); color: var(--text-dark);
+    outline: none; transition: var(--transition); caret-color: var(--gold);
+  }
+  .otp-inputs input:focus { border-color: var(--gold); background: white; }
+  .recovery-email-preview {
+    background: #f0f7ff; border: 1px solid #b3d4f7; border-radius: 12px;
+    padding: 1rem 1.25rem; margin: 1rem 0; text-align: left;
+  }
+  .recovery-email-preview .em-from { font-size: 0.7rem; color: #555; margin-bottom: 0.3rem; }
+  .recovery-email-preview .em-subject { font-size: 0.8rem; font-weight: 700; color: #1a3057; margin-bottom: 0.5rem; }
+  .recovery-email-preview .em-body { font-size: 0.78rem; color: #333; line-height: 1.6; }
+  .recovery-email-preview .em-code {
+    display: inline-block; font-size: 1.6rem; font-weight: 700; letter-spacing: 6px;
+    color: var(--navy); background: white; border: 1.5px solid var(--border);
+    padding: 0.4rem 1rem; border-radius: 8px; margin: 0.5rem 0;
+    font-family: monospace;
+  }
+  .recovery-email-preview .em-expire { font-size: 0.7rem; color: #888; margin-top: 0.4rem; }
+  .resend-link {
+    font-size: 0.75rem; color: var(--text-light); text-align: center;
+    margin-top: 0.5rem; display: block;
+  }
+  .resend-link button {
+    background: none; border: none; color: var(--gold);
+    font-size: 0.75rem; font-weight: 600; cursor: pointer;
+    font-family: 'Inter', sans-serif; text-decoration: underline;
+  }
+  .pw-reveal-box {
+    background: #fff8e8; border: 1.5px solid var(--gold);
+    border-radius: 12px; padding: 1.25rem; margin: 1rem 0; text-align: center;
+  }
+  .pw-reveal-box p { font-size: 0.8rem; color: var(--text-mid); margin-bottom: 0.5rem; }
+  .pw-reveal-box .pw-value {
+    font-size: 1.15rem; font-weight: 700; color: var(--navy);
+    letter-spacing: 2px; font-family: monospace;
+    background: white; border: 1px solid var(--border);
+    padding: 0.4rem 1rem; border-radius: 8px; display: inline-block; margin: 0.3rem 0;
+  }
+  .pw-copy-btn {
+    background: var(--navy); color: white; border: none;
+    padding: 0.4rem 1rem; border-radius: 100px;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    font-family: 'Inter', sans-serif; margin-top: 0.5rem;
+    transition: var(--transition);
+  }
+  .pw-copy-btn:hover { background: var(--navy-light); }
+
+  /* ── CHANGE PASSWORD MODAL ── */
+  #change-pw-overlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: rgba(10,18,35,0.78);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  #change-pw-overlay.show { opacity: 1; pointer-events: all; }
+  .change-pw-modal {
+    background: white; border-radius: 20px;
+    padding: 2.25rem 2rem; width: 100%; max-width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+    position: relative; animation: slideUp 0.3s ease;
+  }
+  .change-pw-modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem; color: var(--navy); margin-bottom: 0.25rem;
+  }
+  .change-pw-modal .modal-sub {
+    font-size: 0.8rem; color: var(--text-light); margin-bottom: 1.75rem;
+  }
+  .change-pw-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: none; border: none; font-size: 1.1rem;
+    cursor: pointer; color: var(--text-light); padding: 4px 8px;
+    border-radius: 6px; transition: var(--transition);
+  }
+  .change-pw-close:hover { background: var(--cream); color: var(--text-dark); }
+  .pw-field { margin-bottom: 1rem; }
+  .pw-field label {
+    display: block; font-size: 0.73rem; font-weight: 600;
+    color: var(--text-mid); letter-spacing: 0.5px; margin-bottom: 0.4rem;
+  }
+  .pw-input-wrap { position: relative; }
+  .pw-input-wrap input {
+    width: 100%; padding: 0.68rem 2.8rem 0.68rem 1rem;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 0.9rem; font-family: 'Inter', sans-serif;
+    background: var(--cream); color: var(--text-dark);
+    outline: none; transition: var(--transition);
+  }
+  .pw-input-wrap input:focus { border-color: var(--gold); background: white; }
+  .pw-eye-btn {
+    position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--text-light); font-size: 1rem; padding: 2px;
+    line-height: 1; transition: var(--transition);
+  }
+  .pw-eye-btn:hover { color: var(--navy); }
+  /* Strength bar */
+  .strength-wrap { margin-top: 0.5rem; }
+  .strength-bar-track {
+    height: 5px; background: #ebe6de; border-radius: 100px; overflow: hidden; margin-bottom: 0.3rem;
+  }
+  .strength-bar-fill {
+    height: 100%; border-radius: 100px;
+    transition: width 0.4s ease, background 0.4s ease;
+    width: 0%;
+  }
+  .strength-label { font-size: 0.7rem; font-weight: 600; }
+  /* Rules checklist */
+  .pw-rules { margin-top: 0.75rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem 0.75rem; }
+  .pw-rule {
+    font-size: 0.72rem; color: var(--text-light);
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+  .pw-rule.pass { color: #2e7d32; }
+  .pw-rule .rule-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: #ddd; transition: background 0.3s;
+  }
+  .pw-rule.pass .rule-dot { background: #43a047; }
+  .pw-match-note { font-size: 0.72rem; margin-top: 0.35rem; min-height: 1rem; }
+  .pw-match-note.ok { color: #2e7d32; }
+  .pw-match-note.err { color: #c62828; }
+  .change-pw-error {
+    color: #c62828; font-size: 0.78rem; margin-bottom: 0.75rem;
+    min-height: 1rem; display: block;
+  }
+  .change-pw-success {
+    display: none; text-align: center; padding: 1.5rem;
+    background: #e8f5e9; border-radius: 12px; margin-top: 0.5rem;
+  }
+  .change-pw-success.show { display: block; }
+  .change-pw-success p { color: #2e7d32; font-weight: 600; margin-top: 0.5rem; }
+  .change-pw-success span { font-size: 2rem; }
+
+  /* Admin bar */
+  #admin-bar {
+    position: fixed; top: 64px; left: 0; right: 0; z-index: 98;
+    background: linear-gradient(90deg, #1b3a1b, #2e5c2e);
+    color: white; display: none;
+    align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 42px;
+    font-size: 0.8rem; font-weight: 500;
+  }
+  #admin-bar.show { display: flex; }
+  #admin-bar .admin-left { display: flex; align-items: center; gap: 0.6rem; }
+  #admin-bar .admin-dot { width: 8px; height: 8px; border-radius: 50%; background: #69f0ae; }
+  #admin-bar button {
+    background: rgba(255,255,255,0.12); color: white;
+    border: 1px solid rgba(255,255,255,0.2); border-radius: 100px;
+    padding: 0.3rem 0.9rem; font-size: 0.75rem; font-weight: 500;
+    cursor: pointer; font-family: 'Inter', sans-serif; transition: var(--transition);
+  }
+  #admin-bar button:hover { background: rgba(255,255,255,0.22); }
+  body.admin-active .page { padding-top: calc(64px + 42px); }
+  body.admin-active nav { top: 0; }
+
+  /* Lock overlay on editable elements when not admin */
+  body:not(.admin-active) .editable {
+    cursor: default; pointer-events: none;
+  }
+  body:not(.admin-active) .photo-upload-area { pointer-events: none; opacity: 0.7; }
+  body:not(.admin-active) .add-skill-form { display: none !important; }
+  body:not(.admin-active) #add-cert-form { display: none !important; }
+  body:not(.admin-active) [onclick*="addExperience"],
+  body:not(.admin-active) [onclick*="addEducation"] { display: none !important; }
+  body:not(.admin-active) .btn-delete { display: none !important; }
+  body:not(.admin-active) [onclick*="saveCertInfo"] { display: none !important; }
+  body:not(.admin-active) .cert-actions .btn-sm.danger { display: none !important; }
+  body:not(.admin-active) #cert-personal-section input { pointer-events: none; background: var(--cream); }
+
+  /* Edit-mode badge on editable fields when admin */
+  body.admin-active .editable {
+    border-bottom: 1.5px dashed rgba(201,168,76,0.6);
+    padding-bottom: 1px;
+  }
+  body.admin-active .editable:hover { background: rgba(201,168,76,0.06); border-radius: 4px; }
+
+  /* Lock icon floating button */
+  #lock-fab {
+    position: fixed; bottom: 5.5rem; right: 2rem; z-index: 97;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--navy); color: white;
+    border: none; font-size: 1.1rem; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(15,31,61,0.3);
+    display: flex; align-items: center; justify-content: center;
+    transition: var(--transition); font-family: 'Inter', sans-serif;
+  }
+  #lock-fab:hover { background: var(--navy-light); transform: scale(1.08); }
+  #lock-fab title { display: none; }
+
+  /* ── PHOTO REPOSITION TOOL ── */
+  .reposition-hint {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,31,61,0.82); color: white;
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.3px;
+    padding: 0.3rem 0.8rem; border-radius: 100px;
+    white-space: nowrap; z-index: 10;
+    display: none; backdrop-filter: blur(6px);
+    border: 1px solid rgba(201,168,76,0.35);
+    pointer-events: none;
+  }
+  body.admin-active .reposition-hint.visible { display: block; }
+
+  /* Photo admin action buttons — change / delete */
+  .photo-admin-actions {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    display: none; gap: 0.5rem; z-index: 10; white-space: nowrap;
+  }
+  body.admin-active .photo-admin-actions.visible { display: flex; }
+  .photo-action-btn {
+    display: flex; align-items: center; gap: 0.35rem;
+    border: none; border-radius: 100px;
+    padding: 0.4rem 0.9rem; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    backdrop-filter: blur(6px); transition: var(--transition);
+  }
+  .change-btn { background: rgba(15,31,61,0.82); color: white; border: 1px solid rgba(201,168,76,0.35); }
+  .change-btn:hover { background: var(--gold); color: var(--navy); }
+  .delete-btn { background: rgba(198,40,40,0.82); color: white; border: 1px solid rgba(255,100,100,0.3); }
+  .delete-btn:hover { background: #c62828; }
+
+  /* ── FOOTER ── */
+  #site-footer {
+    background: var(--navy);
+    color: white;
+    padding: 3.5rem 0 1.5rem;
+  }
+  .footer-inner {
+    width: 92%; max-width: 1200px; margin: 0 auto;
+  }
+  .footer-top {
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 2.5rem; margin-bottom: 3rem;
+  }
+  .footer-brand { }
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; color: var(--gold); margin-bottom: 0.75rem;
+  }
+  .footer-tagline {
+    font-size: 0.85rem; color: rgba(255,255,255,0.55);
+    line-height: 1.7; max-width: 240px; margin-bottom: 1.25rem;
+  }
+  .footer-socials { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .social-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; cursor: pointer; transition: var(--transition);
+    text-decoration: none; color: white;
+  }
+  .social-btn:hover { background: rgba(201,168,76,0.2); border-color: var(--gold); }
+  #s-instagram:hover { background: #E1306C !important; border-color: #E1306C !important; color: white; }
+  #s-linkedin:hover  { background: #0A66C2 !important; border-color: #0A66C2 !important; color: white; }
+  #s-github:hover    { background: #333    !important; border-color: #333    !important; color: white; }
+  #s-twitter:hover   { background: #000    !important; border-color: #000    !important; color: white; }
+  #s-tiktok:hover    { background: #010101 !important; border-color: #010101 !important; color: white; }
+  #s-youtube:hover   { background: #FF0000 !important; border-color: #FF0000 !important; color: white; }
+  #s-facebook:hover  { background: #1877F2 !important; border-color: #1877F2 !important; color: white; }
+  #s-telegram:hover  { background: #2AABEE !important; border-color: #2AABEE !important; color: white; }
+  #s-website:hover   { background: var(--navy-light) !important; border-color: var(--gold) !important; }
+  .social-edit-btn {
+    display: none;
+    background: rgba(201,168,76,0.15); color: var(--gold);
+    border: 1px dashed rgba(201,168,76,0.4); border-radius: 8px;
+    padding: 0.3rem 0.7rem; font-size: 0.7rem; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: var(--transition); white-space: nowrap;
+  }
+  .social-edit-btn:hover { background: rgba(201,168,76,0.25); }
+  body.admin-active .social-edit-btn { display: inline-flex; align-items: center; gap: 0.3rem; }
+  .footer-col-title {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 1rem;
+  }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .footer-links li button, .footer-links li a {
+    background: none; border: none; color: rgba(255,255,255,0.6);
+    font-size: 0.85rem; cursor: pointer; font-family: 'Inter', sans-serif;
+    padding: 0; text-align: left; transition: var(--transition);
+    text-decoration: none; display: inline-block;
+  }
+  .footer-links li button:hover, .footer-links li a:hover { color: white; padding-left: 4px; }
+  .footer-contact-item {
+    display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.65rem;
+  }
+  .footer-contact-item .fc-icon { font-size: 0.9rem; margin-top: 1px; flex-shrink: 0; }
+  .footer-contact-item p { font-size: 0.82rem; color: rgba(255,255,255,0.6); line-height: 1.4; }
+  .footer-divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 1.5rem; }
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
+  }
+  .footer-copy { font-size: 0.78rem; color: rgba(255,255,255,0.35); }
+  .footer-copy span.editable { color: rgba(255,255,255,0.5); }
+  .footer-badge {
+    background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.25);
+    color: var(--gold); font-size: 0.7rem; font-weight: 600;
+    padding: 0.25rem 0.75rem; border-radius: 100px; letter-spacing: 0.5px;
+  }
+  /* Footer responsive */
+  @media (max-width: 900px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 2rem; }
+  }
+  @media (max-width: 540px) {
+    .footer-top { grid-template-columns: 1fr; gap: 1.75rem; }
+    .footer-tagline { max-width: 100%; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; }
+  }
+  body.admin-active .photo-frame.has-photo { cursor: grab; }
+  body.admin-active .photo-frame.has-photo:active { cursor: grabbing; }
+
+  /* Position controls panel */
+  .position-controls {
+    display: none;
+    position: absolute; bottom: -52px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,31,61,0.9); border-radius: 100px;
+    padding: 0.35rem 0.75rem; gap: 0.4rem;
+    align-items: center; z-index: 10;
+    backdrop-filter: blur(8px); border: 1px solid rgba(201,168,76,0.2);
+    white-space: nowrap;
+  }
+  body.admin-active .position-controls.visible { display: flex; }
+  .pos-btn {
+    background: none; border: none; color: rgba(255,255,255,0.75);
+    font-size: 0.9rem; cursor: pointer; padding: 3px 5px;
+    border-radius: 4px; transition: var(--transition); line-height: 1;
+  }
+  .pos-btn:hover { background: rgba(201,168,76,0.2); color: var(--gold); }
+  .pos-divider { width: 1px; height: 14px; background: rgba(255,255,255,0.15); margin: 0 2px; }
+  .pos-label { font-size: 0.65rem; color: rgba(255,255,255,0.45); font-family: 'Inter',sans-serif; }
+  /* ── EMAILJS SETUP MODAL ── */
+  #emailjs-overlay {
+    position: fixed; inset: 0; z-index: 9997;
+    background: rgba(10,18,35,0.78); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  #emailjs-overlay.show { opacity: 1; pointer-events: all; }
+  .emailjs-modal {
+    background: white; border-radius: 20px;
+    padding: 2.25rem 2rem; width: 100%; max-width: 480px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+    position: relative; animation: slideUp 0.3s ease;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .emailjs-modal h2 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--navy); margin-bottom:0.2rem; }
+  .emailjs-modal .modal-sub { font-size:0.8rem; color:var(--text-light); margin-bottom:1.5rem; }
+  .setup-steps { background:var(--cream); border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem; }
+  .setup-step { display:flex; gap:0.75rem; align-items:flex-start; margin-bottom:0.85rem; font-size:0.8rem; color:var(--text-mid); line-height:1.5; }
+  .setup-step:last-child { margin-bottom:0; }
+  .step-num { width:20px; height:20px; border-radius:50%; background:var(--navy); color:white; font-size:0.65rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .setup-step a { color:var(--gold); font-weight:600; text-decoration:none; }
+  .setup-step a:hover { text-decoration:underline; }
+  .emailjs-fields { display:flex; flex-direction:column; gap:0.9rem; margin-bottom:1rem; }
+  .ej-field label { font-size:0.72rem; font-weight:600; color:var(--text-mid); letter-spacing:0.4px; display:block; margin-bottom:0.35rem; }
+  .ej-field input { width:100%; padding:0.6rem 0.875rem; border-radius:8px; border:1.5px solid var(--border); font-size:0.875rem; font-family:'Inter',sans-serif; background:var(--cream); color:var(--text-dark); outline:none; transition:var(--transition); }
+  .ej-field input:focus { border-color:var(--gold); background:white; }
+  .ej-field .field-hint { font-size:0.68rem; color:var(--text-light); margin-top:0.25rem; }
+  .emailjs-status { font-size:0.75rem; min-height:1rem; margin-bottom:0.5rem; padding:0.4rem 0.75rem; border-radius:8px; display:none; }
+  .emailjs-status.ok  { display:block; background:#e8f5e9; color:#2e7d32; }
+  .emailjs-status.err { display:block; background:#fde8e8; color:#c62828; }
+  .emailjs-close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--text-light); padding:4px 8px; border-radius:6px; }
+  .emailjs-close:hover { background:var(--cream); }
+  .admin-connected { color:#69f0ae !important; font-size:0.7rem; }
+
+  #toast {
+    position: fixed; bottom: 2rem; right: 2rem;
+    background: var(--navy); color: white;
+    padding: 0.75rem 1.5rem; border-radius: 100px;
+    font-size: 0.875rem; font-weight: 500;
+    z-index: 999; opacity: 0; transform: translateY(10px);
+    transition: var(--transition); pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ══════════════════════════════════════════════
+     BASE LAYOUT — ALL % / vw / clamp — NO fixed px widths
+  ══════════════════════════════════════════════ */
+
+  /* Home Hero */
+  .home-hero {
+    display: grid;
+    grid-template-columns: 48% 52%;
+    gap: 2%;
+    align-items: flex-end;
+    width: 92%;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding-top: clamp(2rem, 4vh, 4rem);
+    padding-bottom: 0;
+    min-height: calc(100vh - 64px);
+    box-sizing: border-box;
+  }
+
+  /* Photo frame — scales with viewport */
+  .photo-frame {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    height: clamp(280px, 52vw, 580px);
+    display: flex; align-items: flex-end; justify-content: center;
+    margin: 0 auto;
+  }
+
+  /* Upload area inside photo frame */
+  .photo-upload-area {
+    position: relative; z-index: 2;
+    width: 60%; height: 65%;
+    min-width: 140px; min-height: 170px;
+    border-radius: 50% 50% 48% 48% / 40% 40% 60% 60%;
+    border: 2px dashed rgba(201,168,76,0.45);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 0.75rem; cursor: pointer;
+    transition: var(--transition);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(2px);
+  }
+  .photo-upload-area:hover { border-color: var(--gold); background: rgba(201,168,76,0.07); }
+
+  /* Profile layout */
+  .profile-layout {
+    display: grid;
+    grid-template-columns: 25% 73%;
+    gap: 2%;
+    width: 92%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(1.5rem, 3vh, 3rem) 0;
+  }
+
+  /* Section container */
+  .section-container {
+    width: 92%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(3rem, 5vh, 5rem) 0;
+  }
+
+  /* Cert container */
+  .cert-container {
+    width: 92%;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: clamp(2rem, 3vh, 3rem) 0;
+  }
+
+  /* Contact layout */
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 42% 56%;
+    gap: 2%;
+    width: 92%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: clamp(3rem, 5vh, 5rem) 0;
+  }
+
+  /* Services grid */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5%;
+  }
+
+  /* Form grids */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .cert-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+
+  /* ── PERSONAL INFO: hidden from visitors, admin-only ── */
+  #cert-personal-section { display: none; }
+  body.admin-active #cert-personal-section { display: block; }
+
+  /* ══════════════════════════════
+     RESPONSIVE BREAKPOINTS — %/vw based
+  ══════════════════════════════ */
+
+  /* Large desktop ≥ 1600px */
+  @media (min-width: 1600px) {
+    .home-hero { width: 88%; }
+    .profile-layout { width: 88%; }
+    .section-container { width: 88%; }
+    .cert-container { width: 88%; max-width: 1100px; }
+    .contact-layout { width: 88%; }
+    .home-name { font-size: clamp(3rem, 3.5vw, 4.5rem); }
+  }
+
+  /* Desktop 1280px–1599px */
+  @media (max-width: 1599px) and (min-width: 1281px) {
+    .home-hero { width: 90%; }
+    .services-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* Laptop 1024px–1280px */
+  @media (max-width: 1280px) and (min-width: 1025px) {
+    .home-hero { grid-template-columns: 46% 52%; width: 94%; }
+    .photo-frame { height: clamp(300px, 42vw, 500px); }
+    .profile-layout { grid-template-columns: 27% 71%; width: 94%; }
+    .section-container { width: 94%; }
+    .cert-container { width: 94%; }
+    .contact-layout { grid-template-columns: 40% 58%; width: 94%; }
+    .services-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* Tablet landscape 769px–1024px */
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .home-hero {
+      grid-template-columns: 44% 54%;
+      gap: 2%; width: 96%;
+      padding-top: 2rem; padding-bottom: 2rem;
+      align-items: center;
+    }
+    .photo-frame { height: clamp(240px, 36vw, 400px); }
+    .home-name { font-size: clamp(1.75rem, 3.5vw, 2.6rem); }
+    .home-bio { font-size: 0.88rem; }
+    .photo-badge { left: -5px; }
+
+    .profile-layout { grid-template-columns: 28% 70%; width: 96%; }
+    .profile-sidebar { position: sticky; top: 80px; }
+
+    .section-container { width: 96%; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); gap: 2%; }
+
+    .contact-layout { grid-template-columns: 1fr 1.2fr; gap: 3%; width: 96%; }
+    .cert-container { width: 96%; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .cert-info-grid { grid-template-columns: repeat(2, 1fr); }
+
+    #admin-bar { padding: 0 2%; }
+    #admin-bar .admin-left span:last-child { display: none; }
+  }
+
+  /* Tablet portrait 601px–768px */
+  @media (max-width: 768px) and (min-width: 601px) {
+    nav { padding: 0 4%; }
+    .nav-links { display: flex; }
+    .nav-link { padding: 0.45rem 0.6rem; font-size: 0.78rem; }
+    .hamburger { display: none; }
+
+    .home-hero {
+      grid-template-columns: 1fr;
+      width: 96%; text-align: center;
+      align-items: center;
+      min-height: auto;
+      padding: 3rem 0 2.5rem;
+    }
+    .home-photo-side { order: -1; justify-content: center; }
+    .photo-frame { height: clamp(240px, 45vw, 360px); max-width: 55vw; }
+    .home-stats { justify-content: center; }
+    .home-cta { justify-content: center; }
+    .home-bio { margin: 0 auto 1.5rem; max-width: 85%; }
+    .home-name { font-size: clamp(1.8rem, 5vw, 2.4rem); }
+    .photo-badge { left: 5%; bottom: 5%; }
+
+    .profile-layout { grid-template-columns: 1fr; width: 96%; }
+    .profile-sidebar { position: static; }
+
+    .section-container { width: 96%; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); gap: 3%; }
+
+    .contact-layout { grid-template-columns: 1fr; width: 96%; padding-top: 2.5rem; }
+    .contact-form .form-row { grid-template-columns: 1fr 1fr; }
+
+    .cert-container { width: 96%; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .cert-info-grid { grid-template-columns: 1fr 1fr; }
+
+    #admin-bar { padding: 0 3%; height: auto; min-height: 42px; flex-wrap: wrap; gap: 0.4rem; padding-top: 0.4rem; padding-bottom: 0.4rem; }
+    #admin-bar .admin-left span:last-child { display: none; }
+    body.admin-active .page { padding-top: calc(64px + 52px); }
+  }
+
+  /* Mobile 481px–600px */
+  @media (max-width: 600px) {
+    nav { padding: 0 4%; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+
+    .home-hero {
+      grid-template-columns: 1fr;
+      width: 96%; text-align: center;
+      align-items: center; min-height: auto;
+      padding: 2.5rem 0 2rem;
+    }
+    .home-photo-side { order: -1; justify-content: center; }
+    .photo-frame { height: clamp(210px, 55vw, 320px); max-width: 60vw; }
+    .home-name { font-size: clamp(1.5rem, 7vw, 2.2rem); }
+    .home-title { font-size: 0.95rem; }
+    .home-bio { font-size: 0.875rem; margin: 0 auto 1.5rem; max-width: 90%; }
+    .home-stats { justify-content: center; gap: 6%; }
+    .home-cta { justify-content: center; flex-direction: column; align-items: center; }
+    .btn-primary, .btn-outline { width: 80%; max-width: 300px; text-align: center; }
+    .photo-badge { scale: 0.88; bottom: 5%; left: 0; }
+    .photo-dots { display: none; }
+
+    .section-container { width: 96%; padding: 2.5rem 0; }
+    .services-grid { grid-template-columns: 1fr; gap: 4%; }
+    .service-card { padding: 1.4rem; }
+
+    .profile-layout { grid-template-columns: 1fr; width: 96%; gap: 1.25rem; }
+    .profile-sidebar { position: static; }
+    .content-card { padding: 1.4rem; }
+
+    .cert-container { width: 96%; padding: 1.75rem 0; }
+    .cert-card-header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+    .cert-info-grid { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .add-cert-form { padding: 1.25rem; }
+
+    .contact-layout { grid-template-columns: 1fr; width: 96%; gap: 1.5rem; padding: 2rem 0; }
+    .contact-form .form-row { grid-template-columns: 1fr; }
+    .contact-form-wrap { padding: 1.4rem; }
+    .contact-heading { font-size: clamp(1.6rem, 6vw, 2.2rem); }
+
+    #admin-bar { padding: 0.4rem 4%; height: auto; flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    body.admin-active .page { padding-top: calc(64px + 70px); }
+  }
+
+  /* Small mobile ≤ 480px */
+  @media (max-width: 480px) {
+    .home-hero { width: 100%; padding-left: 4%; padding-right: 4%; }
+    .photo-frame { height: clamp(180px, 60vw, 270px); max-width: 68vw; }
+    .home-name { font-size: clamp(1.35rem, 8vw, 1.8rem); }
+    .home-eyebrow { font-size: 0.65rem; }
+    .stat-num { font-size: 1.4rem; }
+    .stat-label { font-size: 0.65rem; }
+    .home-stats { gap: 5%; flex-wrap: wrap; justify-content: center; }
+    .section-container { width: 100%; padding-left: 4%; padding-right: 4%; }
+    .profile-layout { width: 100%; padding-left: 4%; padding-right: 4%; }
+    .cert-container { width: 100%; padding-left: 4%; padding-right: 4%; }
+    .contact-layout { width: 100%; padding-left: 4%; padding-right: 4%; }
+    .cert-info-grid { grid-template-columns: 1fr; }
+    .otp-inputs input { width: 36px; height: 42px; font-size: 1rem; }
+    .auth-modal, .change-pw-modal { padding: 1.5rem 1rem; width: 95vw; }
+  }
+
+  /* Ultra-wide ≥ 1920px */
+  @media (min-width: 1920px) {
+    .home-hero, .profile-layout, .section-container, .contact-layout { width: 80%; }
+    .cert-container { width: 75%; }
+  }
+
+  /* Print */
+  @media print {
+    nav, #admin-bar, #lock-fab, #toast, #auth-overlay, #change-pw-overlay, .mobile-menu, #cert-personal-section { display: none !important; }
+    .page { display: block !important; padding-top: 0 !important; }
+    #page-home { background: white !important; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════
+     AUTH MODAL
+═══════════════════════════ -->
+<div id="auth-overlay">
+  <div class="auth-modal">
+    <button class="auth-close" onclick="closeAuthModal()" aria-label="Close">✕</button>
+
+    <!-- PANEL 1: Login -->
+    <div class="auth-panel active" id="panel-login">
+      <div class="auth-lock-icon">🔐</div>
+      <p class="auth-logo">Developer Access</p>
+      <p class="auth-sub">Enter your password to enable editing</p>
+      <label class="auth-label">Password</label>
+      <input class="auth-input" type="password" id="auth-password-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')attemptLogin()" autocomplete="off" />
+      <span class="auth-error" id="auth-error-msg"></span>
+      <button class="auth-btn" onclick="attemptLogin()">Unlock Editor</button>
+      <button class="auth-forgot-link" onclick="goToForgot()">Forgot password?</button>
+      <p style="font-size:0.72rem;color:var(--text-light);margin-top:0.75rem">Protected by portfolio authority system</p>
+    </div>
+
+    <!-- PANEL 2: Enter recovery email -->
+    <div class="auth-panel" id="panel-forgot">
+      <button class="auth-back-link" onclick="goToPanel('login')">← Back to login</button>
+      <div class="auth-lock-icon">📧</div>
+      <p class="auth-logo">Password Recovery</p>
+      <p class="auth-sub">Enter the developer recovery email to receive your reset code</p>
+      <label class="auth-label">Recovery Email</label>
+      <input class="auth-input" type="email" id="recovery-email-input" placeholder="developer@email.com" onkeydown="if(event.key==='Enter')sendRecoveryCode()" autocomplete="off" style="letter-spacing:0" />
+      <span class="auth-error" id="recovery-error-msg"></span>
+      <button class="auth-btn" onclick="sendRecoveryCode()">Send Recovery Code</button>
+    </div>
+
+    <!-- PANEL 3: Enter OTP (sent to real inbox) -->
+    <div class="auth-panel" id="panel-otp">
+      <button class="auth-back-link" onclick="goToPanel('forgot')">← Change email</button>
+      <div class="auth-lock-icon">✉️</div>
+      <p class="auth-logo">Check Your Email</p>
+      <p class="auth-sub" id="otp-sent-to">A 6-digit code was sent to your email</p>
+
+      <!-- Sending status -->
+      <div id="otp-send-status" style="display:none;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.8rem;text-align:center"></div>
+
+      <!-- Fallback: show code on screen if EmailJS not set up -->
+      <div class="recovery-email-preview" id="otp-fallback-preview" style="display:none">
+        <p class="em-from" style="color:#b45309;font-weight:600">⚠ EmailJS not connected — showing code here instead</p>
+        <p class="em-subject" style="margin-top:0.4rem">🔐 Your Portfolio Recovery Code</p>
+        <div class="em-body">
+          Your one-time recovery code is:<br/>
+          <span class="em-code" id="otp-display">------</span><br/>
+          <span class="em-expire" id="otp-expire-label">This code expires in 5:00 minutes.</span>
+        </div>
+        <p style="font-size:0.68rem;color:#b45570;margin-top:0.5rem">To receive codes by email: log in → admin bar → 📧 Email Setup</p>
+      </div>
+
+      <!-- When sent by email -->
+      <div id="otp-email-sent-box" style="display:none;background:#f0f7ff;border:1px solid #b3d4f7;border-radius:12px;padding:1rem;margin-bottom:1rem;text-align:center">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem">📬</div>
+        <p style="font-size:0.82rem;font-weight:600;color:#1a3057">Code sent to your inbox!</p>
+        <p style="font-size:0.72rem;color:#555;margin-top:0.2rem">Check your email and enter the 6-digit code below.<br/>It expires in <strong id="otp-expire-label">5:00</strong> minutes.</p>
+      </div>
+
+      <label class="auth-label">Enter the 6-digit code</label>
+      <div class="otp-inputs" id="otp-boxes"></div>
+      <span class="auth-error" id="otp-error-msg"></span>
+      <button class="auth-btn" onclick="verifyOTP()">Verify Code</button>
+      <span class="resend-link">Didn't get it? <button onclick="resendOTP()">Resend code</button></span>
+    </div>
+
+    <!-- PANEL 4: Reveal password -->
+    <div class="auth-panel" id="panel-reveal">
+      <div class="auth-lock-icon">✅</div>
+      <p class="auth-logo">Identity Verified</p>
+      <p class="auth-sub">Your developer password has been recovered</p>
+      <div class="pw-reveal-box">
+        <p>Your current password is:</p>
+        <div class="pw-value" id="pw-revealed">—</div><br/>
+        <button class="pw-copy-btn" onclick="copyPassword()">📋 Copy Password</button>
+      </div>
+      <button class="auth-btn" onclick="goToPanel('login')" style="margin-top:0.5rem">Go to Login →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADMIN BAR -->
+<div id="admin-bar">
+  <div class="admin-left">
+    <span class="admin-dot"></span>
+    <span>Admin Mode — editing enabled</span>
+    <span style="opacity:0.55;font-size:0.72rem">| Click any text to edit</span>
+  </div>
+  <div style="display:flex;gap:0.5rem;align-items:center">
+    <button onclick="openEmailSetup()">📧 Email Setup <span id="email-connected-badge"></span></button>
+    <button onclick="openChangePw()">🔑 Change Password</button>
+    <button onclick="logoutAdmin()">🔒 Lock & Exit</button>
+  </div>
+</div>
+
+<!-- EMAILJS SETUP MODAL -->
+<div id="emailjs-overlay">
+  <div class="emailjs-modal">
+    <button class="emailjs-close" onclick="closeEmailSetup()">✕</button>
+    <h2>📧 Email Setup</h2>
+    <p class="modal-sub">Connect EmailJS so contact form messages arrive in your inbox — free, no server needed.</p>
+
+    <div class="setup-steps">
+      <div class="setup-step">
+        <span class="step-num">1</span>
+        <span>Go to <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> and create a free account.</span>
+      </div>
+      <div class="setup-step">
+        <span class="step-num">2</span>
+        <span>Add an <strong>Email Service</strong> (Gmail, Outlook, etc.) — copy the <strong>Service ID</strong>.</span>
+      </div>
+      <div class="setup-step">
+        <span class="step-num">3</span>
+        <span>Create an <strong>Email Template</strong>. Use these variables in it:<br/>
+          <code style="font-size:0.72rem;background:#eee;padding:2px 5px;border-radius:4px">{{from_name}}</code>
+          <code style="font-size:0.72rem;background:#eee;padding:2px 5px;border-radius:4px">{{from_email}}</code>
+          <code style="font-size:0.72rem;background:#eee;padding:2px 5px;border-radius:4px">{{subject}}</code>
+          <code style="font-size:0.72rem;background:#eee;padding:2px 5px;border-radius:4px">{{message}}</code>
+          — copy the <strong>Template ID</strong>.
+        </span>
+      </div>
+      <div class="setup-step">
+        <span class="step-num">4</span>
+        <span>Go to <strong>Account → API Keys</strong> — copy your <strong>Public Key</strong>.</span>
+      </div>
+      <div class="setup-step">
+        <span class="step-num">5</span>
+        <span>Paste all three below and click <strong>Save & Connect</strong>.</span>
+      </div>
+    </div>
+
+    <div class="emailjs-fields">
+      <div class="ej-field">
+        <label>Public Key (User ID)</label>
+        <input type="text" id="ej-pubkey" placeholder="e.g. user_aBcDeFgHiJkL" />
+        <p class="field-hint">Found in Account → API Keys</p>
+      </div>
+      <div class="ej-field">
+        <label>Service ID</label>
+        <input type="text" id="ej-service" placeholder="e.g. service_xxxxxxx" />
+        <p class="field-hint">Found in Email Services list</p>
+      </div>
+      <div class="ej-field">
+        <label>Template ID</label>
+        <input type="text" id="ej-template" placeholder="e.g. template_xxxxxxx" />
+        <p class="field-hint">Found in Email Templates list</p>
+      </div>
+      <div class="ej-field">
+        <label>Your Receiving Email</label>
+        <input type="email" id="ej-toemail" placeholder="you@gmail.com" />
+        <p class="field-hint">Where contact messages will be delivered</p>
+      </div>
+    </div>
+
+    <div class="emailjs-status" id="emailjs-status"></div>
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end">
+      <button class="btn-sm" onclick="testEmailJS()">🧪 Send Test</button>
+      <button class="auth-btn" style="width:auto;padding:0.65rem 1.5rem" onclick="saveEmailSetup()">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div id="change-pw-overlay">
+  <div class="change-pw-modal">
+    <button class="change-pw-close" onclick="closeChangePw()" aria-label="Close">✕</button>
+    <h2>Change Password</h2>
+    <p class="modal-sub">You must confirm your current password before setting a new one.</p>
+
+    <div id="change-pw-form-area">
+      <!-- Current password -->
+      <div class="pw-field">
+        <label>Current Password</label>
+        <div class="pw-input-wrap">
+          <input type="password" id="cp-current" placeholder="Enter current password" autocomplete="off" oninput="clearChangePwError()" />
+          <button class="pw-eye-btn" type="button" onclick="toggleEye('cp-current',this)">👁</button>
+        </div>
+      </div>
+
+      <!-- Recovery Email -->
+      <div class="pw-field">
+        <label>Recovery Email <span style="font-weight:400;color:var(--text-light);font-size:0.68rem">(used to recover your password if forgotten)</span></label>
+        <div class="pw-input-wrap">
+          <input type="email" id="cp-recovery-email" placeholder="your@email.com" autocomplete="off" style="padding-right:1rem" />
+        </div>
+        <div id="recovery-email-status" style="font-size:0.7rem;margin-top:0.3rem;min-height:1rem"></div>
+      </div>
+
+      <!-- New password -->
+      <div class="pw-field">
+        <label>New Password</label>
+        <div class="pw-input-wrap">
+          <input type="password" id="cp-new" placeholder="Create a strong password" autocomplete="new-password" oninput="onNewPwInput()" />
+          <button class="pw-eye-btn" type="button" onclick="toggleEye('cp-new',this)">👁</button>
+        </div>
+        <div class="strength-wrap">
+          <div class="strength-bar-track"><div class="strength-bar-fill" id="strength-fill"></div></div>
+          <span class="strength-label" id="strength-label" style="color:var(--text-light)">Type a password</span>
+        </div>
+        <div class="pw-rules" id="pw-rules">
+          <div class="pw-rule" id="rule-len"><span class="rule-dot"></span>8+ characters</div>
+          <div class="pw-rule" id="rule-upper"><span class="rule-dot"></span>Uppercase letter</div>
+          <div class="pw-rule" id="rule-num"><span class="rule-dot"></span>Number</div>
+          <div class="pw-rule" id="rule-special"><span class="rule-dot"></span>Special character</div>
+        </div>
+      </div>
+
+      <!-- Confirm password -->
+      <div class="pw-field">
+        <label>Confirm New Password</label>
+        <div class="pw-input-wrap">
+          <input type="password" id="cp-confirm" placeholder="Repeat new password" autocomplete="new-password" oninput="onConfirmInput()" />
+          <button class="pw-eye-btn" type="button" onclick="toggleEye('cp-confirm',this)">👁</button>
+        </div>
+        <div class="pw-match-note" id="pw-match-note"></div>
+      </div>
+
+      <span class="change-pw-error" id="change-pw-error"></span>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+        <button class="auth-btn" onclick="doChangePassword()" style="width:auto;flex:1">Save Changes</button>
+      </div>
+      <p style="font-size:0.7rem;color:var(--text-light);margin-top:0.75rem;text-align:center">💡 You can save just the recovery email without changing your password — leave the password fields empty.</p>
+    </div>
+
+    <div class="change-pw-success" id="change-pw-success">
+      <span>✅</span>
+      <p>Password changed successfully!</p>
+      <p style="font-size:0.8rem;color:#388e3c;font-weight:400;margin-top:0.3rem">Your new password is active. Use it next time you log in.</p>
+      <button class="pw-copy-btn" onclick="closeChangePw()" style="margin-top:1rem">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOCK FAB -->
+<button id="lock-fab" onclick="openAuthModal()" title="Developer Login" aria-label="Developer Login">🔑</button>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo">Yohannes Shimekit Portfolio</div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="showPage('home')">Home</button>
+    <button class="nav-link" onclick="showPage('profile')">Profile</button>
+    <button class="nav-link" onclick="showPage('certificate')">Certificates</button>
+    <button class="nav-link" onclick="showPage('contact')">Contact</button>
+  </div>
+  <button class="hamburger" onclick="toggleMobile()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <button class="nav-link" onclick="showPage('home');closeMobile()">Home</button>
+  <button class="nav-link" onclick="showPage('profile');closeMobile()">Profile</button>
+  <button class="nav-link" onclick="showPage('certificate');closeMobile()">Certificates</button>
+  <button class="nav-link" onclick="showPage('contact');closeMobile()">Contact</button>
+</div>
+
+<!-- ═══════════════════════════
+     PAGE 1: HOME
+═══════════════════════════ -->
+<section class="page active" id="page-home">
+  <div class="home-hero">
+    <!-- PHOTO -->
+    <div class="home-photo-side">
+      <div class="photo-frame" id="photo-frame">
+        <!-- Decorative elements behind the person -->
+        <div class="photo-arc"></div>
+        <div class="photo-dots">
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <!-- BG remove button (appears after upload) -->
+        <button class="bg-remove-btn" id="bg-remove-btn" onclick="toggleBgRemove()">✨ Remove Background</button>
+
+        <!-- Reposition hint -->
+        <div class="reposition-hint" id="reposition-hint">✥ Drag to reposition</div>
+
+        <!-- Admin photo action buttons (delete / change) -->
+        <div class="photo-admin-actions" id="photo-admin-actions">
+          <button class="photo-action-btn change-btn" onclick="document.getElementById('photo-file-input').click()" title="Change photo">
+            <span>🔄</span> Change
+          </button>
+          <button class="photo-action-btn delete-btn" onclick="deletePhoto()" title="Delete photo">
+            <span>🗑</span> Delete
+          </button>
+        </div>
+
+        <!-- Canvas output (bg removed) -->
+        <canvas id="photo-canvas"></canvas>
+
+        <!-- Fallback plain photo -->
+        <img id="profile-photo-display" class="photo-display" src="" alt="Profile photo" />
+
+        <!-- Upload placeholder -->
+        <div class="photo-upload-area" id="photo-upload-area" onclick="document.getElementById('photo-file-input').click()">
+          <svg width="48" height="48" fill="none" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="24" fill="rgba(201,168,76,0.12)"/>
+            <circle cx="24" cy="20" r="7" stroke="#c9a84c" stroke-width="1.8" fill="none"/>
+            <path d="M10 40c0-7.73 6.27-14 14-14s14 6.27 14 14" stroke="#c9a84c" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          </svg>
+          <p>Click to upload<br/>your photo</p>
+          <p style="font-size:0.72rem;opacity:0.5">PNG with transparent bg works best</p>
+        </div>
+
+        <!-- Floating credential badge -->
+        <div class="photo-badge" id="photo-badge">
+          <span class="photo-badge-icon">🏆</span>
+          <div class="photo-badge-text">
+            <strong>Top Professional</strong>
+            <p>Available for hire</p>
+          </div>
+        </div>
+
+        <input type="file" id="photo-file-input" accept="image/*" onchange="uploadPhoto(event)" />
+        <canvas id="processing-canvas"></canvas>
+      </div>
+
+      <!-- Position quick-buttons (outside frame, below it) -->
+      <div class="position-controls" id="position-controls">
+        <span class="pos-label">Position:</span>
+        <button class="pos-btn" onclick="setPosition('top')" title="Top">⬆</button>
+        <button class="pos-btn" onclick="setPosition('center')" title="Center">⊕</button>
+        <button class="pos-btn" onclick="setPosition('bottom')" title="Bottom">⬇</button>
+        <div class="pos-divider"></div>
+        <button class="pos-btn" onclick="setPosition('left')" title="Left">⬅</button>
+        <button class="pos-btn" onclick="setPosition('right')" title="Right">➡</button>
+        <div class="pos-divider"></div>
+        <button class="pos-btn" onclick="resetPosition()" title="Reset">↺</button>
+      </div>
+    </div>
+    <!-- TEXT -->
+    <div class="home-text-side">
+      <span class="home-eyebrow">Welcome to my portfolio</span>
+      <h1 class="home-name">
+        <span class="editable" id="edit-name" contenteditable="true" placeholder="Your Full Name" spellcheck="false">Your Full Name</span>
+      </h1>
+      <p class="home-title">
+        <span class="editable" id="edit-title" contenteditable="true" placeholder="Your Professional Title" spellcheck="false" style="font-style:italic">Your Professional Title</span>
+      </p>
+      <p class="home-bio">
+        <span class="editable" id="edit-bio" contenteditable="true" placeholder="Write a short bio about yourself — your passion, expertise, and what drives you..." spellcheck="false">Write a short bio about yourself — your passion, expertise, and what drives you to create meaningful work.</span>
+      </p>
+      <div class="home-stats">
+        <div class="stat-item">
+          <span class="stat-num editable" contenteditable="true" spellcheck="false">5+</span>
+          <span class="stat-label">Years Exp.</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num editable" contenteditable="true" spellcheck="false">40+</span>
+          <span class="stat-label">Projects</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num editable" contenteditable="true" spellcheck="false">30+</span>
+          <span class="stat-label">Clients</span>
+        </div>
+      </div>
+      <div class="home-cta">
+        <button class="btn-primary" onclick="showPage('contact')">Hire Me</button>
+        <button class="btn-outline" onclick="showPage('profile')">View Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Services section -->
+  <div class="home-sections">
+    <div class="section-container">
+      <div class="section-header">
+        <p class="section-eyebrow">What I offer</p>
+        <h2 class="section-title">Services</h2>
+        <div class="section-divider"></div>
+      </div>
+      <div class="services-grid" id="services-grid">
+        <div class="service-card">
+          <div class="service-icon">💡</div>
+          <p class="service-title editable" contenteditable="true" spellcheck="false">Strategy & Consulting</p>
+          <p class="service-desc editable" contenteditable="true" spellcheck="false">Expert guidance to help your business grow, solve challenges, and reach new markets.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">🎨</div>
+          <p class="service-title editable" contenteditable="true" spellcheck="false">Design & Branding</p>
+          <p class="service-desc editable" contenteditable="true" spellcheck="false">Creating visual identities and experiences that leave a lasting impression on your audience.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">⚙️</div>
+          <p class="service-title editable" contenteditable="true" spellcheck="false">Development</p>
+          <p class="service-desc editable" contenteditable="true" spellcheck="false">Building robust, scalable solutions tailored precisely to your needs and technical requirements.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">📊</div>
+          <p class="service-title editable" contenteditable="true" spellcheck="false">Analytics & Growth</p>
+          <p class="service-desc editable" contenteditable="true" spellcheck="false">Data-driven insights that reveal opportunities and accelerate measurable business growth.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════
+     PAGE 2: PROFILE
+═══════════════════════════ -->
+<section class="page" id="page-profile">
+  <div class="profile-layout">
+    <!-- SIDEBAR -->
+    <aside class="profile-sidebar">
+      <div class="profile-card">
+        <img id="sidebar-photo" class="profile-avatar" src="" alt="Avatar" style="display:none" />
+        <div id="sidebar-avatar-placeholder" style="width:100px;height:100px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-family:'Playfair Display',serif;font-size:2rem;color:var(--gold);">P</div>
+        <p class="profile-name-card" id="sidebar-name">Your Name</p>
+        <p class="profile-role-card" id="sidebar-role">Professional Title</p>
+        <div class="profile-badges" id="sidebar-badges">
+          <span class="badge">Design</span>
+          <span class="badge">Strategy</span>
+          <span class="badge">Tech</span>
+        </div>
+      </div>
+      <div class="content-card" style="margin-top:1.5rem">
+        <p class="content-card-title"><span>📍</span> Location</p>
+        <p class="editable" contenteditable="true" spellcheck="false" style="font-size:0.875rem;color:var(--text-mid)" placeholder="Your City, Country">Your City, Country</p>
+        <p class="content-card-title" style="margin-top:1.5rem"><span>📧</span> Email</p>
+        <p class="editable" contenteditable="true" spellcheck="false" style="font-size:0.875rem;color:var(--text-mid)" placeholder="your@email.com">your@email.com</p>
+        <p class="content-card-title" style="margin-top:1.5rem"><span>🌐</span> Website</p>
+        <p class="editable" contenteditable="true" spellcheck="false" style="font-size:0.875rem;color:var(--text-mid)" placeholder="www.yoursite.com">www.yoursite.com</p>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="profile-content">
+      <!-- About -->
+      <div class="content-card">
+        <p class="content-card-title"><span>👤</span> About Me</p>
+        <p class="editable" contenteditable="true" spellcheck="false" style="font-size:0.9rem;color:var(--text-mid);line-height:1.8" placeholder="Tell your story in detail here...">A passionate professional with a drive for excellence and innovation. I combine deep technical knowledge with creative problem-solving to deliver results that exceed expectations. My approach is always client-first, focusing on real impact and measurable outcomes.</p>
+      </div>
+
+      <!-- Skills -->
+      <div class="content-card">
+        <p class="content-card-title"><span>🧠</span> Skills</p>
+        <div id="skills-list"></div>
+        <div class="add-skill-form">
+          <input type="text" id="skill-name-input" placeholder="Skill name (e.g. Figma)" />
+          <input type="range" id="skill-pct-input" min="10" max="100" value="80" style="flex:1" />
+          <span id="skill-pct-label" style="font-size:0.8rem;color:var(--text-light);min-width:30px">80%</span>
+          <button class="btn-add" onclick="addSkill()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div class="content-card">
+        <p class="content-card-title"><span>💼</span> Experience</p>
+        <div class="timeline" id="experience-list"></div>
+        <button class="btn-add" style="margin-top:1rem" onclick="addExperience()">+ Add Experience</button>
+      </div>
+
+      <!-- Education -->
+      <div class="content-card">
+        <p class="content-card-title"><span>🎓</span> Education</p>
+        <div class="timeline" id="education-list"></div>
+        <button class="btn-add" style="margin-top:1rem" onclick="addEducation()">+ Add Education</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════
+     PAGE 3: CERTIFICATE
+═══════════════════════════ -->
+<section class="page" id="page-certificate">
+  <div class="cert-container">
+    <h1 class="cert-page-title">Certificates & Credentials</h1>
+    <p class="cert-page-sub">Attach your personal information and upload your certificates below.</p>
+
+    <!-- Personal Info Banner -->
+    <div class="content-card" style="margin-bottom:2rem">
+      <p class="content-card-title"><span>🪪</span> Personal Information</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.25rem">
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" id="cert-fullname" placeholder="Your full name" />
+        </div>
+        <div class="form-field">
+          <label>Date of Birth</label>
+          <input type="date" id="cert-dob" />
+        </div>
+        <div class="form-field">
+          <label>Nationality</label>
+          <input type="text" id="cert-nationality" placeholder="e.g. Ethiopian" />
+        </div>
+        <div class="form-field">
+          <label>ID / Passport No.</label>
+          <input type="text" id="cert-idnum" placeholder="ID or passport number" />
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" id="cert-email" placeholder="your@email.com" />
+        </div>
+        <div class="form-field">
+          <label>Phone</label>
+          <input type="tel" id="cert-phone" placeholder="+251 ..." />
+        </div>
+      </div>
+      <div style="margin-top:1rem;text-align:right">
+        <button class="btn-primary" onclick="saveCertInfo()">Save Info</button>
+      </div>
+    </div>
+
+    <!-- Certificates list -->
+    <div id="cert-list"></div>
+
+    <!-- Add cert form -->
+    <div class="add-cert-form" id="add-cert-form">
+      <h3>➕ Add New Certificate</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Certificate Title</label>
+          <input type="text" id="cf-title" placeholder="e.g. AWS Cloud Practitioner" />
+        </div>
+        <div class="form-field">
+          <label>Issuing Organization</label>
+          <input type="text" id="cf-org" placeholder="e.g. Amazon Web Services" />
+        </div>
+        <div class="form-field">
+          <label>Issue Date</label>
+          <input type="date" id="cf-date" />
+        </div>
+        <div class="form-field">
+          <label>Expiry Date (optional)</label>
+          <input type="date" id="cf-expiry" />
+        </div>
+        <div class="form-field">
+          <label>Credential ID</label>
+          <input type="text" id="cf-credid" placeholder="Credential or license number" />
+        </div>
+        <div class="form-field">
+          <label>Credential URL</label>
+          <input type="text" id="cf-url" placeholder="https://verify.example.com/..." />
+        </div>
+        <div class="form-field full">
+          <label>Certificate Image / Document</label>
+          <div class="cert-upload-zone" onclick="document.getElementById('cert-file-input').click()">
+            <svg width="28" height="28" fill="none" viewBox="0 0 28 28"><path d="M14 4v14M8 10l6-6 6 6" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 22h18" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <p id="cert-file-label">Click to upload certificate image or PDF preview</p>
+          </div>
+          <input type="file" id="cert-file-input" accept="image/*,application/pdf" onchange="certFileSelected(event)" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" onclick="clearCertForm()">Clear</button>
+        <button class="btn-primary" onclick="addCertificate()">Add Certificate</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════
+     PAGE 4: CONTACT
+═══════════════════════════ -->
+<section class="page" id="page-contact">
+  <div class="contact-layout">
+    <!-- LEFT INFO -->
+    <div class="contact-info">
+      <p class="contact-eyebrow">Get in touch</p>
+      <h2 class="contact-heading">Let's Work<br/>Together</h2>
+      <p class="contact-desc editable" contenteditable="true" spellcheck="false">I'm currently available for freelance work and full-time opportunities. If you have a project that needs creative and technical excellence, I'd love to hear from you.</p>
+      <div class="contact-methods">
+        <div class="contact-method">
+          <div class="method-icon">📧</div>
+          <div>
+            <p class="method-label">Email</p>
+            <p class="method-value editable" contenteditable="true" spellcheck="false">your@email.com</p>
+          </div>
+        </div>
+        <div class="contact-method">
+          <div class="method-icon">📞</div>
+          <div>
+            <p class="method-label">Phone</p>
+            <p class="method-value editable" contenteditable="true" spellcheck="false">+251 900 000 000</p>
+          </div>
+        </div>
+        <div class="contact-method">
+          <div class="method-icon">📍</div>
+          <div>
+            <p class="method-label">Location</p>
+            <p class="method-value editable" contenteditable="true" spellcheck="false">Addis Ababa, Ethiopia</p>
+          </div>
+        </div>
+        <div class="contact-method">
+          <div class="method-icon">🔗</div>
+          <div>
+            <p class="method-label">LinkedIn</p>
+            <p class="method-value editable" contenteditable="true" spellcheck="false">linkedin.com/in/yourname</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT FORM -->
+    <div class="contact-form-wrap">
+      <h3>Send a Message</h3>
+      <div class="contact-form" id="contact-form">
+        <div class="form-row">
+          <div>
+            <label>First Name</label>
+            <input type="text" id="c-fname" placeholder="John" />
+          </div>
+          <div>
+            <label>Last Name</label>
+            <input type="text" id="c-lname" placeholder="Doe" />
+          </div>
+        </div>
+        <div>
+          <label>Email Address</label>
+          <input type="email" id="c-email" placeholder="john@example.com" />
+        </div>
+        <div>
+          <label>Subject</label>
+          <input type="text" id="c-subject" placeholder="What's this about?" />
+        </div>
+        <div>
+          <label>Message</label>
+          <textarea id="c-message" placeholder="Tell me about your project or inquiry..."></textarea>
+        </div>
+        <button class="submit-btn" onclick="submitContact()">Send Message ✈</button>
+      </div>
+      <div class="form-success" id="form-success">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem">✅</div>
+        <p style="font-weight:600;font-size:1rem;color:#1b5e20">Message sent successfully!</p>
+        <p style="font-size:0.875rem;margin-top:0.25rem;color:#388e3c">I'll get back to you as soon as possible.</p>
+        <button class="btn-add" style="margin-top:1rem" onclick="resetContact()">Send Another</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════
+     SOCIAL LINKS MODAL
+═══════════════════════════ -->
+<div id="social-overlay" style="position:fixed;inset:0;z-index:9996;background:rgba(10,18,35,0.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s">
+  <div style="background:white;border-radius:20px;padding:2rem 1.75rem;width:100%;max-width:460px;box-shadow:0 24px 80px rgba(0,0,0,0.3);position:relative;animation:slideUp 0.3s ease;max-height:90vh;overflow-y:auto">
+    <button onclick="closeSocialModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.1rem;cursor:pointer;color:#718096;padding:4px 8px;border-radius:6px">✕</button>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#0f1f3d;margin-bottom:0.25rem">🔗 Social Links</h2>
+    <p style="font-size:0.8rem;color:#718096;margin-bottom:1.5rem">Paste your profile URLs below. Leave blank to hide. Links open in a new tab.</p>
+
+    <div id="social-fields" style="display:flex;flex-direction:column;gap:0.85rem">
+      <!-- Fields injected by JS -->
+    </div>
+
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem">
+      <button class="btn-sm" onclick="closeSocialModal()">Cancel</button>
+      <button class="auth-btn" style="width:auto;padding:0.65rem 1.5rem" onclick="saveSocialLinks()">Save Links</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SITE FOOTER (shows on all pages)
+═══════════════════════════ -->
+<footer id="site-footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+
+      <!-- Brand col -->
+      <div class="footer-brand">
+        <div class="footer-logo editable" contenteditable="true" spellcheck="false">Portfolio</div>
+        <p class="footer-tagline editable" contenteditable="true" spellcheck="false">Building meaningful work with passion, precision, and purpose. Available for freelance and full-time opportunities.</p>
+        <div class="footer-socials" id="footer-socials">
+          <!-- Instagram -->
+          <a class="social-btn" id="s-instagram" title="Instagram" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          </a>
+          <!-- LinkedIn -->
+          <a class="social-btn" id="s-linkedin" title="LinkedIn" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </a>
+          <!-- GitHub -->
+          <a class="social-btn" id="s-github" title="GitHub" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+          </a>
+          <!-- Twitter/X -->
+          <a class="social-btn" id="s-twitter" title="Twitter / X" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <!-- TikTok -->
+          <a class="social-btn" id="s-tiktok" title="TikTok" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.88a8.18 8.18 0 004.79 1.52V7.01a4.85 4.85 0 01-1.02-.32z"/></svg>
+          </a>
+          <!-- YouTube -->
+          <a class="social-btn" id="s-youtube" title="YouTube" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </a>
+          <!-- Facebook -->
+          <a class="social-btn" id="s-facebook" title="Facebook" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </a>
+          <!-- Telegram -->
+          <a class="social-btn" id="s-telegram" title="Telegram" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          </a>
+          <!-- Website -->
+          <a class="social-btn" id="s-website" title="Website" href="#" target="_blank" style="display:none">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+          </a>
+          <!-- Placeholder shown when no socials linked yet -->
+          <span id="no-socials-hint" style="font-size:0.75rem;color:rgba(255,255,255,0.3);font-style:italic">No social links yet</span>
+          <!-- Admin edit button -->
+          <button class="social-edit-btn" id="social-edit-btn" onclick="openSocialModal()" title="Edit social links">＋ Add Links</button>
+        </div>
+      </div>
+
+      <!-- Quick links col -->
+      <div>
+        <p class="footer-col-title">Navigate</p>
+        <ul class="footer-links">
+          <li><button onclick="showPage('home')">Home</button></li>
+          <li><button onclick="showPage('profile')">Profile</button></li>
+          <li><button onclick="showPage('certificate')">Certificates</button></li>
+          <li><button onclick="showPage('contact')">Contact</button></li>
+        </ul>
+      </div>
+
+      <!-- Services col -->
+      <div>
+        <p class="footer-col-title">Services</p>
+        <ul class="footer-links" id="footer-services">
+          <li><button onclick="goToService()">Strategy & Consulting</button></li>
+          <li><button onclick="goToService()">Design & Branding</button></li>
+          <li><button onclick="goToService()">Development</button></li>
+          <li><button onclick="goToService()">Analytics & Growth</button></li>
+        </ul>
+      </div>
+
+      <!-- Contact col -->
+      <div>
+        <p class="footer-col-title">Contact</p>
+        <div class="footer-contact-item">
+          <span class="fc-icon">📧</span>
+          <p class="editable" contenteditable="true" spellcheck="false">your@email.com</p>
+        </div>
+        <div class="footer-contact-item">
+          <span class="fc-icon">📞</span>
+          <p class="editable" contenteditable="true" spellcheck="false">+251 900 000 000</p>
+        </div>
+        <div class="footer-contact-item">
+          <span class="fc-icon">📍</span>
+          <p class="editable" contenteditable="true" spellcheck="false">Addis Ababa, Ethiopia</p>
+        </div>
+      </div>
+
+    </div>
+
+    <hr class="footer-divider" />
+
+    <div class="footer-bottom">
+      <p class="footer-copy">
+        © <span id="footer-year"></span>
+        <span class="editable" contenteditable="true" spellcheck="false">Your Name</span>.
+        All rights reserved.
+      </p>
+      <span class="footer-badge">✦ Open to Work</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  AUTHORITY / AUTH SYSTEM
+//  Change DEV_PASSWORD below to set yours
+// ══════════════════════════════════════════
+let DEV_PASSWORD = 'yoha';
+let isAdmin = false;
+
+function openAuthModal() {
+  if (isAdmin) { logoutAdmin(); return; }
+  document.getElementById('auth-overlay').classList.add('show');
+  document.getElementById('auth-password-input').value = '';
+  document.getElementById('auth-error-msg').textContent = '';
+  setTimeout(() => document.getElementById('auth-password-input').focus(), 200);
+}
+function closeAuthModal() {
+  document.getElementById('auth-overlay').classList.remove('show');
+}
+function attemptLogin() {
+  const val = document.getElementById('auth-password-input').value;
+  const errEl = document.getElementById('auth-error-msg');
+  if (val === DEV_PASSWORD) {
+    isAdmin = true;
+    closeAuthModal();
+    document.body.classList.add('admin-active');
+    document.getElementById('admin-bar').classList.add('show');
+    document.getElementById('lock-fab').textContent = '🔒';
+    document.getElementById('lock-fab').title = 'Lock & exit admin';
+    toast('✅ Admin mode enabled — you can now edit everything');
+    // Restore add-skill-form visibility
+    document.getElementById('skills-list') && renderSkills();
+    renderTimelines();
+    renderCerts();
+  } else {
+    errEl.textContent = '✗ Incorrect password. Access denied.';
+    document.getElementById('auth-password-input').value = '';
+    document.getElementById('auth-password-input').focus();
+    const modal = document.querySelector('.auth-modal');
+    modal.style.animation = 'none';
+    modal.offsetHeight;
+    modal.style.animation = 'shake 0.4s ease';
+  }
+}
+function logoutAdmin() {
+  isAdmin = false;
+  document.body.classList.remove('admin-active');
+  document.getElementById('admin-bar').classList.remove('show');
+  document.getElementById('lock-fab').textContent = '🔑';
+  document.getElementById('lock-fab').title = 'Developer Login';
+  toast('🔒 Editing locked — visitor mode active');
+}
+
+// Shake animation for wrong password
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }`;
+document.head.appendChild(shakeStyle);
+
+// ── FORGOT PASSWORD SYSTEM ──
+let DEV_RECOVERY_EMAIL = '';
+
+let currentOTP = '';
+let otpExpiry = null;
+let otpTimer = null;
+
+function goToPanel(name) {
+  document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  // Clear errors
+  ['auth-error-msg','recovery-error-msg','otp-error-msg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+}
+
+function goToForgot() {
+  goToPanel('forgot');
+  setTimeout(() => document.getElementById('recovery-email-input').focus(), 150);
+}
+
+function generateOTP() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+function sendRecoveryCode() {
+  const emailInput = document.getElementById('recovery-email-input').value.trim().toLowerCase();
+  const errEl = document.getElementById('recovery-error-msg');
+  if (!emailInput) { errEl.textContent = '✗ Please enter your recovery email.'; return; }
+
+  if (!DEV_RECOVERY_EMAIL) {
+    errEl.innerHTML = '✗ No recovery email set yet.<br><span style="font-size:0.72rem;color:#718096">Log in → admin bar → 🔑 Change Password → add your Recovery Email first.</span>';
+    return;
+  }
+  if (emailInput !== DEV_RECOVERY_EMAIL.toLowerCase()) {
+    errEl.textContent = '✗ Email not recognized. It does not match the registered recovery email.';
+    return;
+  }
+
+  // Generate OTP
+  currentOTP = generateOTP();
+  otpExpiry = Date.now() + 5 * 60 * 1000;
+
+  // Update subtitle
+  document.getElementById('otp-sent-to').textContent = 'Code sent to ' + maskEmail(emailInput);
+  buildOTPBoxes();
+  startOTPTimer();
+  goToPanel('otp');
+
+  const statusEl    = document.getElementById('otp-send-status');
+  const fallbackEl  = document.getElementById('otp-fallback-preview');
+  const sentBoxEl   = document.getElementById('otp-email-sent-box');
+  const otpDispEl   = document.getElementById('otp-display');
+
+  // Show sending state
+  statusEl.style.display = 'block';
+  statusEl.style.background = '#f0f7ff';
+  statusEl.style.color = '#1565c0';
+  statusEl.textContent = '⏳ Sending code to your email...';
+  fallbackEl.style.display  = 'none';
+  sentBoxEl.style.display   = 'none';
+
+  if (ejReady) {
+    // Send real email via EmailJS
+    emailjs.send(ejConfig.serviceId, ejConfig.templateId, {
+      from_name:  'Portfolio Security',
+      from_email: ejConfig.toEmail,
+      subject:    '🔐 Your Password Recovery Code',
+      message:    `Hi Developer,\n\nYour one-time password recovery code is:\n\n${currentOTP}\n\nThis code expires in 5 minutes. Do not share it with anyone.\n\nIf you did not request this, ignore this email.`,
+      to_email:   DEV_RECOVERY_EMAIL,
+    }).then(() => {
+      statusEl.style.display = 'none';
+      sentBoxEl.style.display = 'block';
+      setTimeout(() => document.querySelector('.otp-inputs input')?.focus(), 150);
+    }).catch(err => {
+      console.error('EmailJS OTP error:', err);
+      // Fall back to showing on screen
+      statusEl.style.background = '#fff8e1';
+      statusEl.style.color = '#b45309';
+      statusEl.textContent = '⚠ Could not send email — showing code on screen instead.';
+      otpDispEl.textContent = currentOTP;
+      fallbackEl.style.display = 'block';
+      setTimeout(() => document.querySelector('.otp-inputs input')?.focus(), 150);
+    });
+  } else {
+    // EmailJS not set up — show on screen with warning
+    statusEl.style.display = 'none';
+    otpDispEl.textContent = currentOTP;
+    fallbackEl.style.display = 'block';
+    setTimeout(() => document.querySelector('.otp-inputs input')?.focus(), 200);
+  }
+}
+
+function resendOTP() {
+  currentOTP = generateOTP();
+  otpExpiry = Date.now() + 5 * 60 * 1000;
+  buildOTPBoxes();
+  startOTPTimer();
+  document.getElementById('otp-error-msg').textContent = '';
+
+  const statusEl   = document.getElementById('otp-send-status');
+  const fallbackEl = document.getElementById('otp-fallback-preview');
+  const sentBoxEl  = document.getElementById('otp-email-sent-box');
+  const otpDispEl  = document.getElementById('otp-display');
+
+  if (ejReady) {
+    statusEl.style.display = 'block';
+    statusEl.style.background = '#f0f7ff';
+    statusEl.style.color = '#1565c0';
+    statusEl.textContent = '⏳ Sending new code...';
+    fallbackEl.style.display = 'none';
+    sentBoxEl.style.display  = 'none';
+
+    emailjs.send(ejConfig.serviceId, ejConfig.templateId, {
+      from_name:  'Portfolio Security',
+      from_email: ejConfig.toEmail,
+      subject:    '🔐 New Recovery Code',
+      message:    `Your new one-time recovery code is:\n\n${currentOTP}\n\nThis code expires in 5 minutes.`,
+      to_email:   DEV_RECOVERY_EMAIL,
+    }).then(() => {
+      statusEl.style.display = 'none';
+      sentBoxEl.style.display = 'block';
+      toast('📬 New code sent to your inbox!');
+    }).catch(() => {
+      statusEl.style.background = '#fff8e1';
+      statusEl.style.color = '#b45309';
+      statusEl.textContent = '⚠ Email failed — showing code on screen.';
+      otpDispEl.textContent = currentOTP;
+      fallbackEl.style.display = 'block';
+    });
+  } else {
+    otpDispEl.textContent = currentOTP;
+    fallbackEl.style.display = 'block';
+    sentBoxEl.style.display  = 'none';
+    toast('New code generated');
+  }
+  setTimeout(() => document.querySelector('.otp-inputs input')?.focus(), 100);
+}
+
+function maskEmail(email) {
+  const [local, domain] = email.split('@');
+  const masked = local[0] + '*'.repeat(Math.max(local.length - 2, 2)) + local.slice(-1);
+  return masked + '@' + domain;
+}
+
+function buildOTPBoxes() {
+  const container = document.getElementById('otp-boxes');
+  container.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.maxLength = 1; inp.inputMode = 'numeric';
+    inp.dataset.index = i;
+    inp.addEventListener('input', function(e) {
+      this.value = this.value.replace(/\D/g,'');
+      if (this.value && i < 5) container.querySelectorAll('input')[i+1].focus();
+      if (allFilled()) verifyOTP();
+    });
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !this.value && i > 0) container.querySelectorAll('input')[i-1].focus();
+    });
+    inp.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pasted = (e.clipboardData.getData('text')).replace(/\D/g,'').slice(0,6);
+      const boxes = container.querySelectorAll('input');
+      pasted.split('').forEach((ch, idx) => { if (boxes[idx]) boxes[idx].value = ch; });
+      if (pasted.length === 6) verifyOTP();
+    });
+    container.appendChild(inp);
+  }
+}
+
+function allFilled() {
+  return [...document.querySelectorAll('.otp-inputs input')].every(i => i.value);
+}
+
+function getEnteredOTP() {
+  return [...document.querySelectorAll('.otp-inputs input')].map(i => i.value).join('');
+}
+
+function startOTPTimer() {
+  if (otpTimer) clearInterval(otpTimer);
+  otpTimer = setInterval(() => {
+    const remaining = Math.max(0, otpExpiry - Date.now());
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    const label = document.getElementById('otp-expire-label');
+    if (label) label.textContent = remaining > 0
+      ? `This code expires in ${mins}:${String(secs).padStart(2,'0')} minutes.`
+      : 'Code expired. Please request a new one.';
+    if (remaining === 0) { clearInterval(otpTimer); currentOTP = ''; }
+  }, 1000);
+}
+
+function verifyOTP() {
+  const errEl = document.getElementById('otp-error-msg');
+  const entered = getEnteredOTP();
+  if (entered.length < 6) { errEl.textContent = '✗ Please enter all 6 digits.'; return; }
+  if (!currentOTP) { errEl.textContent = '✗ Code has expired. Please request a new one.'; return; }
+  if (Date.now() > otpExpiry) { errEl.textContent = '✗ Code has expired. Please request a new one.'; currentOTP = ''; return; }
+  if (entered !== currentOTP) {
+    errEl.textContent = '✗ Incorrect code. Please try again.';
+    document.querySelectorAll('.otp-inputs input').forEach(i => { i.value = ''; i.style.borderColor = '#e57373'; });
+    setTimeout(() => document.querySelectorAll('.otp-inputs input').forEach(i => i.style.borderColor = ''), 1500);
+    document.querySelector('.otp-inputs input').focus();
+    return;
+  }
+  // Success — reveal password
+  clearInterval(otpTimer);
+  document.getElementById('pw-revealed').textContent = DEV_PASSWORD;
+  goToPanel('reveal');
+}
+
+function copyPassword() {
+  navigator.clipboard.writeText(DEV_PASSWORD).then(() => toast('Password copied!')).catch(() => {
+    toast('Copy: ' + DEV_PASSWORD);
+  });
+}
+
+// ══════════════════════════════════════════
+//  CHANGE PASSWORD SYSTEM
+// ══════════════════════════════════════════
+function openChangePw() {
+  if (!isAdmin) return;
+  document.getElementById('change-pw-overlay').classList.add('show');
+  document.getElementById('change-pw-form-area').style.display = 'block';
+  document.getElementById('change-pw-success').classList.remove('show');
+  ['cp-current','cp-new','cp-confirm'].forEach(id => document.getElementById(id).value = '');
+  // Prefill recovery email if already set
+  document.getElementById('cp-recovery-email').value = DEV_RECOVERY_EMAIL || '';
+  document.getElementById('recovery-email-status').textContent = DEV_RECOVERY_EMAIL
+    ? '✓ Recovery email is set: ' + DEV_RECOVERY_EMAIL
+    : '';
+  document.getElementById('recovery-email-status').style.color = DEV_RECOVERY_EMAIL ? '#2e7d32' : '';
+  document.getElementById('change-pw-error').textContent = '';
+  document.getElementById('strength-fill').style.width = '0%';
+  document.getElementById('strength-label').textContent = 'Type a password';
+  document.getElementById('strength-label').style.color = 'var(--text-light)';
+  document.getElementById('pw-match-note').textContent = '';
+  ['rule-len','rule-upper','rule-num','rule-special'].forEach(id => document.getElementById(id).classList.remove('pass'));
+  setTimeout(() => document.getElementById('cp-current').focus(), 150);
+}
+
+function closeChangePw() {
+  document.getElementById('change-pw-overlay').classList.remove('show');
+}
+
+function clearChangePwError() {
+  document.getElementById('change-pw-error').textContent = '';
+}
+
+function toggleEye(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
+function getStrength(pw) {
+  let score = 0;
+  const rules = {
+    len:     pw.length >= 8,
+    upper:   /[A-Z]/.test(pw),
+    num:     /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw),
+  };
+  Object.values(rules).forEach(v => { if (v) score++; });
+  if (pw.length >= 12) score = Math.min(score + 1, 4);
+  return { score, rules };
+}
+
+function onNewPwInput() {
+  const pw = document.getElementById('cp-new').value;
+  const { score, rules } = getStrength(pw);
+  const fill = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  const pcts  = [0, 25, 50, 75, 100];
+  const colors = ['transparent','#e57373','#ffa726','#42a5f5','#43a047'];
+  const labels = ['','Weak','Fair','Good','Strong'];
+  const lColors = ['','#c62828','#e65100','#1565c0','#2e7d32'];
+  fill.style.width  = pcts[score] + '%';
+  fill.style.background = colors[score];
+  label.textContent = pw ? labels[score] : 'Type a password';
+  label.style.color = pw ? lColors[score] : 'var(--text-light)';
+  // Rules
+  document.getElementById('rule-len').classList.toggle('pass', rules.len);
+  document.getElementById('rule-upper').classList.toggle('pass', rules.upper);
+  document.getElementById('rule-num').classList.toggle('pass', rules.num);
+  document.getElementById('rule-special').classList.toggle('pass', rules.special);
+  // Re-check match
+  onConfirmInput();
+}
+
+function onConfirmInput() {
+  const nw = document.getElementById('cp-new').value;
+  const cf = document.getElementById('cp-confirm').value;
+  const note = document.getElementById('pw-match-note');
+  if (!cf) { note.textContent = ''; return; }
+  if (nw === cf) { note.textContent = '✓ Passwords match'; note.className = 'pw-match-note ok'; }
+  else           { note.textContent = '✗ Passwords do not match'; note.className = 'pw-match-note err'; }
+}
+
+function doChangePassword() {
+  const current  = document.getElementById('cp-current').value;
+  const nw       = document.getElementById('cp-new').value;
+  const confirm  = document.getElementById('cp-confirm').value;
+  const recEmail = document.getElementById('cp-recovery-email').value.trim();
+  const errEl    = document.getElementById('change-pw-error');
+  const emailSt  = document.getElementById('recovery-email-status');
+
+  // Save recovery email immediately if provided (even without changing password)
+  if (recEmail) {
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recEmail);
+    if (!emailOk) { errEl.textContent = '✗ Please enter a valid recovery email address.'; return; }
+    DEV_RECOVERY_EMAIL = recEmail;
+    emailSt.textContent = '✓ Recovery email saved: ' + recEmail;
+    emailSt.style.color = '#2e7d32';
+  }
+
+  // If no new password entered, just save email and close
+  if (!nw && !confirm && !current) {
+    if (recEmail) {
+      toast('📧 Recovery email saved!');
+      closeChangePw();
+    } else {
+      errEl.textContent = '✗ Enter your current password to change it, or add a recovery email.';
+    }
+    return;
+  }
+
+  // Validate current password
+  if (!current) { errEl.textContent = '✗ Please enter your current password.'; return; }
+  if (current !== DEV_PASSWORD) {
+    errEl.textContent = '✗ Current password is incorrect.';
+    document.getElementById('cp-current').value = '';
+    document.getElementById('cp-current').focus();
+    return;
+  }
+  // Validate new password
+  if (!nw) { errEl.textContent = '✗ Please enter a new password.'; return; }
+  if (nw === current) { errEl.textContent = '✗ New password must be different from the current one.'; return; }
+  const { score } = getStrength(nw);
+  if (score < 2) { errEl.textContent = '✗ Password is too weak. Add uppercase, numbers, or symbols.'; return; }
+  if (nw !== confirm) { errEl.textContent = '✗ Passwords do not match.'; document.getElementById('cp-confirm').focus(); return; }
+
+  // Apply new password
+  DEV_PASSWORD = nw;
+  const revealed = document.getElementById('pw-revealed');
+  if (revealed) revealed.textContent = nw;
+
+  // Show success
+  document.getElementById('change-pw-form-area').style.display = 'none';
+  document.getElementById('change-pw-success').classList.add('show');
+  toast('🔑 Password updated successfully!');
+}
+
+// Clicking on editable elements when not admin → prompt login
+document.addEventListener('click', function(e) {
+  const el = e.target.closest('.editable, .photo-upload-area');
+  if (el && !isAdmin) {
+    e.preventDefault(); e.stopPropagation();
+    openAuthModal();
+    document.getElementById('auth-error-msg').textContent = '⚠ Login required to edit content.';
+  }
+}, true);
+
+// Block keyboard input on editable elements unless admin
+document.addEventListener('keydown', function(e) {
+  if (!isAdmin && e.target.hasAttribute && e.target.getAttribute('contenteditable') === 'true') {
+    e.preventDefault();
+  }
+}, true);
+
+// ── STATE ──
+let skills = [
+  { name: 'Communication', pct: 90 },
+  { name: 'Project Management', pct: 85 },
+  { name: 'Design Thinking', pct: 80 },
+  { name: 'Problem Solving', pct: 92 },
+];
+let experiences = [
+  { period: '2022 – Present', title: 'Senior Consultant', org: 'Your Company' },
+  { period: '2019 – 2022', title: 'Associate Manager', org: 'Previous Firm' },
+];
+let educations = [
+  { period: '2015 – 2019', title: 'Bachelor of Science', org: 'University Name' },
+];
+let certificates = [];
+let certPendingFile = null;
+
+// ── NAV ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l => {
+    if (l.textContent.toLowerCase().includes(id === 'certificate' ? 'cert' : id)) l.classList.add('active');
+  });
+  window.scrollTo(0, 0);
+  if (id === 'profile') { renderSkills(); renderTimelines(); syncSidebar(); }
+  if (id === 'certificate') renderCerts();
+}
+function toggleMobile() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+function closeMobile() {
+  document.getElementById('mobile-menu').classList.remove('open');
+}
+
+// ── PHOTO ──
+let rawPhotoSrc = null;
+let bgRemoved = false;
+
+function uploadPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    rawPhotoSrc = ev.target.result;
+    bgRemoved = false;
+    showPlainPhoto(rawPhotoSrc);
+    toast('Photo uploaded! Click ✨ to remove background');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── PHOTO POSITION STATE ──
+let photoPosX = 50; // percent 0–100
+let photoPosY = 20; // percent 0–100
+let isDragging = false;
+let dragStartX, dragStartY, dragStartPosX, dragStartPosY;
+
+function applyPhotoPosition() {
+  const img = document.getElementById('profile-photo-display');
+  const cvs = document.getElementById('photo-canvas');
+  const pos = `${photoPosX}% ${photoPosY}%`;
+  img.style.objectPosition = pos;
+  cvs.style.objectPosition = pos;
+}
+
+function setPosition(preset) {
+  const presets = {
+    top:    [50, 5],
+    center: [50, 50],
+    bottom: [50, 95],
+    left:   [5,  50],
+    right:  [95, 50],
+  };
+  if (presets[preset]) {
+    [photoPosX, photoPosY] = presets[preset];
+    applyPhotoPosition();
+    toast('Position updated');
+  }
+}
+
+function resetPosition() {
+  photoPosX = 50; photoPosY = 20;
+  applyPhotoPosition();
+  toast('Position reset');
+}
+
+function initPhotoDrag() {
+  const frame = document.getElementById('photo-frame');
+
+  function onDown(e) {
+    if (!isAdmin) return;
+    if (!frame.classList.contains('has-photo')) return;
+    isDragging = true;
+    frame.classList.add('dragging');
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    dragStartX = clientX;
+    dragStartY = clientY;
+    dragStartPosX = photoPosX;
+    dragStartPosY = photoPosY;
+    e.preventDefault();
+  }
+
+  function onMove(e) {
+    if (!isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const rect = frame.getBoundingClientRect();
+    // sensitivity: moving full frame width = 100% shift
+    const dx = (clientX - dragStartX) / rect.width * -100;
+    const dy = (clientY - dragStartY) / rect.height * -100;
+    photoPosX = Math.min(100, Math.max(0, dragStartPosX + dx));
+    photoPosY = Math.min(100, Math.max(0, dragStartPosY + dy));
+    applyPhotoPosition();
+    e.preventDefault();
+  }
+
+  function onUp() {
+    if (!isDragging) return;
+    isDragging = false;
+    frame.classList.remove('dragging');
+    toast('Position saved ✓');
+  }
+
+  frame.addEventListener('mousedown',  onDown,  { passive: false });
+  frame.addEventListener('touchstart', onDown,  { passive: false });
+  window.addEventListener('mousemove', onMove,  { passive: false });
+  window.addEventListener('touchmove', onMove,  { passive: false });
+  window.addEventListener('mouseup',   onUp);
+  window.addEventListener('touchend',  onUp);
+}
+
+function showPhotoControls() {
+  const frame = document.getElementById('photo-frame');
+  frame.classList.add('has-photo');
+  document.getElementById('reposition-hint').classList.add('visible');
+  document.getElementById('position-controls').classList.add('visible');
+  document.getElementById('photo-admin-actions').classList.add('visible');
+}
+
+function deletePhoto() {
+  if (!isAdmin) return;
+  if (!confirm('Delete this photo? This cannot be undone.')) return;
+  rawPhotoSrc = null; bgRemoved = false;
+  photoPosX = 50; photoPosY = 20;
+  // Hide photo/canvas, show upload area
+  const disp = document.getElementById('profile-photo-display');
+  const canvas = document.getElementById('photo-canvas');
+  disp.src = ''; disp.style.display = 'none';
+  canvas.style.display = 'none';
+  document.getElementById('photo-upload-area').style.display = 'flex';
+  document.getElementById('bg-remove-btn').classList.remove('visible');
+  document.getElementById('photo-badge').classList.remove('show');
+  // Hide controls
+  const frame = document.getElementById('photo-frame');
+  frame.classList.remove('has-photo');
+  document.getElementById('reposition-hint').classList.remove('visible');
+  document.getElementById('position-controls').classList.remove('visible');
+  document.getElementById('photo-admin-actions').classList.remove('visible');
+  // Reset sidebar
+  const sp = document.getElementById('sidebar-photo');
+  sp.src = ''; sp.style.display = 'none';
+  document.getElementById('sidebar-avatar-placeholder').style.display = 'flex';
+  // Reset file input
+  document.getElementById('photo-file-input').value = '';
+  toast('🗑 Photo deleted — upload a new one');
+}
+
+function showPlainPhoto(src) {
+  const disp = document.getElementById('profile-photo-display');
+  const canvas = document.getElementById('photo-canvas');
+  disp.src = src;
+  disp.style.display = 'block';
+  disp.style.width = '100%';
+  disp.style.height = '100%';
+  disp.style.objectFit = 'cover';
+  canvas.style.display = 'none';
+  document.getElementById('photo-upload-area').style.display = 'none';
+  document.getElementById('bg-remove-btn').classList.add('visible');
+  document.getElementById('bg-remove-btn').textContent = '✨ Remove Background';
+  document.getElementById('photo-badge').classList.add('show');
+  applyPhotoPosition();
+  showPhotoControls();
+  // Sidebar
+  const sp = document.getElementById('sidebar-photo');
+  sp.src = src; sp.style.display = 'block';
+  document.getElementById('sidebar-avatar-placeholder').style.display = 'none';
+}
+
+function toggleBgRemove() {
+  if (!rawPhotoSrc) return;
+  if (bgRemoved) {
+    // Restore original
+    showPlainPhoto(rawPhotoSrc);
+    bgRemoved = false;
+    document.getElementById('bg-remove-btn').textContent = '✨ Remove Background';
+  } else {
+    removeBackground();
+  }
+}
+
+function removeBackground() {
+  const btn = document.getElementById('bg-remove-btn');
+  btn.textContent = '⏳ Processing...';
+  btn.style.pointerEvents = 'none';
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    const proc = document.getElementById('processing-canvas');
+    const scale = Math.min(800 / img.naturalWidth, 1000 / img.naturalHeight, 1);
+    const w = Math.round(img.naturalWidth * scale);
+    const h = Math.round(img.naturalHeight * scale);
+    proc.width = w; proc.height = h;
+    const ctx = proc.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+
+    // Sample corners to estimate background color
+    const samples = [];
+    const samplePoints = [
+      [2,2],[w-3,2],[2,h-3],[w-3,h-3],
+      [Math.round(w/2),2],[2,Math.round(h/2)],[w-3,Math.round(h/2)]
+    ];
+    samplePoints.forEach(([x,y]) => {
+      const idx = (y * w + x) * 4;
+      samples.push([data[idx], data[idx+1], data[idx+2]]);
+    });
+    const bgR = Math.round(samples.reduce((s,c)=>s+c[0],0)/samples.length);
+    const bgG = Math.round(samples.reduce((s,c)=>s+c[1],0)/samples.length);
+    const bgB = Math.round(samples.reduce((s,c)=>s+c[2],0)/samples.length);
+    const tolerance = 55;
+
+    // Flood-fill from edges to mark background
+    const bgMask = new Uint8Array(w * h);
+    const queue = [];
+    function colorDist(i) {
+      const dr = data[i]-bgR, dg = data[i+1]-bgG, db = data[i+2]-bgB;
+      return Math.sqrt(dr*dr+dg*dg+db*db);
+    }
+    function enqueue(x,y) {
+      if (x<0||y<0||x>=w||y>=h) return;
+      const i = y*w+x;
+      if (bgMask[i]) return;
+      const pi = i*4;
+      if (colorDist(pi) < tolerance) { bgMask[i]=1; queue.push(x,y); }
+    }
+    for (let x=0;x<w;x++) { enqueue(x,0); enqueue(x,h-1); }
+    for (let y=0;y<h;y++) { enqueue(0,y); enqueue(w-1,y); }
+    let qi=0;
+    while (qi<queue.length) {
+      const cx=queue[qi++], cy=queue[qi++];
+      enqueue(cx+1,cy); enqueue(cx-1,cy); enqueue(cx,cy+1); enqueue(cx,cy-1);
+    }
+
+    // Apply: make bg transparent, smooth edges
+    for (let i=0;i<w*h;i++) {
+      const pi=i*4;
+      if (bgMask[i]) {
+        data[pi+3]=0;
+      } else {
+        // Soft edge: check if near background
+        const x=i%w, y=Math.floor(i/w);
+        let neighborBg=0;
+        for (let dy=-2;dy<=2;dy++) for (let dx=-2;dx<=2;dx++) {
+          const ni=(y+dy)*w+(x+dx);
+          if (ni>=0&&ni<w*h&&bgMask[ni]) neighborBg++;
+        }
+        if (neighborBg>0) {
+          const alpha = Math.max(0, 255 - neighborBg * 30);
+          data[pi+3] = Math.min(data[pi+3], alpha);
+        }
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    // Copy to display canvas
+    const outCanvas = document.getElementById('photo-canvas');
+    outCanvas.width = w; outCanvas.height = h;
+    outCanvas.style.width = '100%'; outCanvas.style.height = '100%';
+    outCanvas.style.objectFit = 'contain'; outCanvas.style.objectPosition = 'bottom center';
+    outCanvas.getContext('2d').drawImage(proc, 0, 0);
+    outCanvas.style.display = 'block';
+    outCanvas.style.objectFit = 'cover';
+    document.getElementById('profile-photo-display').style.display = 'none';
+    applyPhotoPosition();
+    showPhotoControls();
+
+    bgRemoved = true;
+    btn.textContent = '↩ Restore Background';
+    btn.style.pointerEvents = '';
+    toast('✅ Background removed!');
+  };
+  img.src = rawPhotoSrc;
+}
+
+// ── SYNC NAME/TITLE to sidebar ──
+function syncSidebar() {
+  const n = document.getElementById('edit-name').innerText.trim();
+  const t = document.getElementById('edit-title').innerText.trim();
+  document.getElementById('sidebar-name').textContent = n || 'Your Name';
+  document.getElementById('sidebar-role').textContent = t || 'Professional Title';
+}
+document.getElementById('edit-name').addEventListener('input', syncSidebar);
+document.getElementById('edit-title').addEventListener('input', syncSidebar);
+
+// ── SKILLS ──
+document.getElementById('skill-pct-input').addEventListener('input', function() {
+  document.getElementById('skill-pct-label').textContent = this.value + '%';
+});
+function renderSkills() {
+  const list = document.getElementById('skills-list');
+  list.innerHTML = skills.map((s, i) => `
+    <div class="skill-item">
+      <div class="skill-header">
+        <span class="skill-name">${s.name}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="skill-pct">${s.pct}%</span>
+          <button class="btn-delete" onclick="deleteSkill(${i})" title="Remove">✕</button>
+        </span>
+      </div>
+      <div class="skill-bar"><div class="skill-fill" style="width:${s.pct}%"></div></div>
+    </div>
+  `).join('');
+}
+function addSkill() {
+  const name = document.getElementById('skill-name-input').value.trim();
+  const pct = parseInt(document.getElementById('skill-pct-input').value);
+  if (!name) { toast('Enter a skill name'); return; }
+  skills.push({ name, pct });
+  document.getElementById('skill-name-input').value = '';
+  document.getElementById('skill-pct-input').value = 80;
+  document.getElementById('skill-pct-label').textContent = '80%';
+  renderSkills();
+  toast('Skill added!');
+}
+function deleteSkill(i) {
+  skills.splice(i, 1); renderSkills(); toast('Skill removed');
+}
+
+// ── EXPERIENCE ──
+function renderTimelines() {
+  renderTimeline('experience-list', experiences, 'exp');
+  renderTimeline('education-list', educations, 'edu');
+}
+function renderTimeline(id, data, prefix) {
+  document.getElementById(id).innerHTML = data.map((item, i) => `
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <p class="tl-period">${item.period}</p>
+      <p class="tl-title">${item.title}</p>
+      <p class="tl-org">${item.org}</p>
+      <button class="btn-delete" onclick="deleteItem('${prefix}',${i})" title="Remove">✕ Remove</button>
+    </div>
+  `).join('');
+}
+function deleteItem(prefix, i) {
+  if (prefix === 'exp') experiences.splice(i, 1);
+  else educations.splice(i, 1);
+  renderTimelines(); toast('Entry removed');
+}
+function addExperience() {
+  const period = prompt('Period (e.g. 2022 – Present):');
+  if (!period) return;
+  const title = prompt('Job Title:');
+  const org = prompt('Company / Organization:');
+  experiences.unshift({ period, title: title || 'Position', org: org || 'Organization' });
+  renderTimelines(); toast('Experience added!');
+}
+function addEducation() {
+  const period = prompt('Period (e.g. 2015 – 2019):');
+  if (!period) return;
+  const title = prompt('Degree / Qualification:');
+  const org = prompt('School / University:');
+  educations.unshift({ period, title: title || 'Degree', org: org || 'Institution' });
+  renderTimelines(); toast('Education added!');
+}
+
+// ── CERTIFICATES ──
+function certFileSelected(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  certPendingFile = file;
+  document.getElementById('cert-file-label').textContent = '✓ ' + file.name;
+}
+function saveCertInfo() {
+  toast('Personal information saved!');
+}
+function addCertificate() {
+  const title = document.getElementById('cf-title').value.trim();
+  const org = document.getElementById('cf-org').value.trim();
+  if (!title || !org) { toast('Please enter title and organization'); return; }
+  const cert = {
+    id: Date.now(),
+    title,
+    org,
+    date: document.getElementById('cf-date').value,
+    expiry: document.getElementById('cf-expiry').value,
+    credId: document.getElementById('cf-credid').value,
+    url: document.getElementById('cf-url').value,
+    fileData: null,
+    fileName: null,
+  };
+  if (certPendingFile) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      cert.fileData = ev.target.result;
+      cert.fileName = certPendingFile.name;
+      certificates.unshift(cert);
+      clearCertForm();
+      renderCerts();
+      toast('Certificate added!');
+    };
+    reader.readAsDataURL(certPendingFile);
+  } else {
+    certificates.unshift(cert);
+    clearCertForm();
+    renderCerts();
+    toast('Certificate added!');
+  }
+}
+function clearCertForm() {
+  ['cf-title','cf-org','cf-date','cf-expiry','cf-credid','cf-url'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('cert-file-input').value = '';
+  document.getElementById('cert-file-label').textContent = 'Click to upload certificate image or PDF preview';
+  certPendingFile = null;
+}
+function deleteCert(id) {
+  certificates = certificates.filter(c => c.id !== id);
+  renderCerts(); toast('Certificate removed');
+}
+function renderCerts() {
+  const list = document.getElementById('cert-list');
+  if (certificates.length === 0) { list.innerHTML = ''; return; }
+  list.innerHTML = certificates.map(c => `
+    <div class="cert-card">
+      <div class="cert-card-header">
+        <div>
+          <p style="font-weight:600;font-size:1rem">${c.title}</p>
+          <p style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin-top:2px">${c.org}</p>
+        </div>
+        <span class="cert-badge">Verified</span>
+      </div>
+      <div class="cert-card-body">
+        <div class="cert-info-grid">
+          ${c.date ? `<div class="cert-info-item"><p class="cert-info-label">Issue Date</p><p class="cert-info-value">${formatDate(c.date)}</p></div>` : ''}
+          ${c.expiry ? `<div class="cert-info-item"><p class="cert-info-label">Expiry Date</p><p class="cert-info-value">${formatDate(c.expiry)}</p></div>` : ''}
+          ${c.credId ? `<div class="cert-info-item"><p class="cert-info-label">Credential ID</p><p class="cert-info-value" style="font-family:monospace;font-size:0.8rem">${c.credId}</p></div>` : ''}
+        </div>
+        ${c.fileData && c.fileData.startsWith('data:image') ? `<img class="cert-img-preview" src="${c.fileData}" alt="${c.title}" />` : ''}
+        ${c.fileName && !c.fileData.startsWith('data:image') ? `<p style="font-size:0.8rem;color:var(--text-mid);margin-top:0.5rem">📎 ${c.fileName}</p>` : ''}
+        <div class="cert-actions">
+          ${c.url ? `<button class="btn-sm" onclick="openLink('${c.url}')">🔗 Verify Online</button>` : ''}
+          <button class="btn-sm danger" onclick="deleteCert(${c.id})">🗑 Remove</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+function formatDate(str) {
+  if (!str) return '';
+  const d = new Date(str);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+function openLink(url) {
+  window.open(url, '_blank');
+}
+
+// ── EMAILJS CONFIG ──
+let ejConfig = { pubKey: '', serviceId: '', templateId: '', toEmail: '' };
+let ejReady = false;
+
+function openEmailSetup() {
+  document.getElementById('emailjs-overlay').classList.add('show');
+  // Prefill saved values
+  document.getElementById('ej-pubkey').value   = ejConfig.pubKey;
+  document.getElementById('ej-service').value  = ejConfig.serviceId;
+  document.getElementById('ej-template').value = ejConfig.templateId;
+  document.getElementById('ej-toemail').value  = ejConfig.toEmail;
+  document.getElementById('emailjs-status').className = 'emailjs-status';
+}
+function closeEmailSetup() {
+  document.getElementById('emailjs-overlay').classList.remove('show');
+}
+function saveEmailSetup() {
+  const pub  = document.getElementById('ej-pubkey').value.trim();
+  const svc  = document.getElementById('ej-service').value.trim();
+  const tmpl = document.getElementById('ej-template').value.trim();
+  const to   = document.getElementById('ej-toemail').value.trim();
+  const st   = document.getElementById('emailjs-status');
+  if (!pub || !svc || !tmpl || !to) {
+    st.textContent = '✗ Please fill in all four fields.';
+    st.className = 'emailjs-status err'; return;
+  }
+  ejConfig = { pubKey: pub, serviceId: svc, templateId: tmpl, toEmail: to };
+  emailjs.init(pub);
+  ejReady = true;
+  st.textContent = '✅ Connected! Contact form messages will now reach your inbox.';
+  st.className = 'emailjs-status ok';
+  document.getElementById('email-connected-badge').innerHTML = '<span class="admin-connected">● Live</span>';
+  toast('📧 Email connected!');
+}
+
+function testEmailJS() {
+  const pub  = document.getElementById('ej-pubkey').value.trim();
+  const svc  = document.getElementById('ej-service').value.trim();
+  const tmpl = document.getElementById('ej-template').value.trim();
+  const to   = document.getElementById('ej-toemail').value.trim();
+  const st   = document.getElementById('emailjs-status');
+  if (!pub || !svc || !tmpl || !to) {
+    st.textContent = '✗ Fill in all fields before testing.';
+    st.className = 'emailjs-status err'; return;
+  }
+  emailjs.init(pub);
+  st.textContent = '⏳ Sending test email...'; st.className = 'emailjs-status ok';
+  emailjs.send(svc, tmpl, {
+    from_name:  'Portfolio Test',
+    from_email: to,
+    subject:    'Test — Contact Form is Working!',
+    message:    'This is a test message from your portfolio contact form. Everything is connected correctly! ✅',
+    to_email:   to,
+  }).then(() => {
+    st.textContent = '✅ Test email sent! Check your inbox at ' + to;
+    st.className = 'emailjs-status ok';
+  }).catch(err => {
+    st.textContent = '✗ Failed: ' + (err.text || JSON.stringify(err)) + '. Double-check your IDs.';
+    st.className = 'emailjs-status err';
+  });
+}
+
+// ── CONTACT ──
+function submitContact() {
+  const fname   = document.getElementById('c-fname').value.trim();
+  const lname   = document.getElementById('c-lname').value.trim();
+  const email   = document.getElementById('c-email').value.trim();
+  const subject = document.getElementById('c-subject').value.trim();
+  const msg     = document.getElementById('c-message').value.trim();
+
+  if (!fname || !email || !msg) { toast('⚠ Please fill in name, email and message'); return; }
+
+  const btn = document.querySelector('.submit-btn');
+  btn.textContent = '⏳ Sending...'; btn.disabled = true;
+
+  if (!ejReady) {
+    // No EmailJS connected — show a helpful note
+    setTimeout(() => {
+      btn.textContent = 'Send Message ✈'; btn.disabled = false;
+      showContactSuccess('(Demo mode — connect EmailJS in admin to receive real emails)');
+    }, 800);
+    return;
+  }
+
+  emailjs.send(ejConfig.serviceId, ejConfig.templateId, {
+    from_name:  fname + ' ' + lname,
+    from_email: email,
+    subject:    subject || 'New message from portfolio',
+    message:    msg,
+    to_email:   ejConfig.toEmail,
+  }).then(() => {
+    btn.textContent = 'Send Message ✈'; btn.disabled = false;
+    showContactSuccess();
+  }).catch(err => {
+    btn.textContent = 'Send Message ✈'; btn.disabled = false;
+    toast('✗ Failed to send. Please try again or email me directly.');
+    console.error('EmailJS error:', err);
+  });
+}
+
+function showContactSuccess(note) {
+  document.getElementById('contact-form').style.display = 'none';
+  const suc = document.getElementById('form-success');
+  suc.classList.add('show');
+  if (note) {
+    const n = document.createElement('p');
+    n.style.cssText = 'font-size:0.75rem;color:#888;margin-top:0.5rem';
+    n.textContent = note; suc.appendChild(n);
+  }
+}
+
+function resetContact() {
+  ['c-fname','c-lname','c-email','c-subject','c-message'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('contact-form').style.display = 'flex';
+  const suc = document.getElementById('form-success');
+  suc.classList.remove('show');
+  // Remove any demo notes
+  suc.querySelectorAll('p:last-child').forEach(p => { if (p.style.color === 'rgb(136, 136, 136)') p.remove(); });
+}
+
+// ══════════════════════════════════════════
+//  SOCIAL LINKS SYSTEM
+// ══════════════════════════════════════════
+const SOCIAL_PLATFORMS = [
+  { id: 's-instagram', label: 'Instagram',   color: '#E1306C', placeholder: 'https://instagram.com/yourname' },
+  { id: 's-linkedin',  label: 'LinkedIn',    color: '#0A66C2', placeholder: 'https://linkedin.com/in/yourname' },
+  { id: 's-github',    label: 'GitHub',      color: '#333',    placeholder: 'https://github.com/yourname' },
+  { id: 's-twitter',   label: 'Twitter / X', color: '#000',    placeholder: 'https://x.com/yourname' },
+  { id: 's-tiktok',    label: 'TikTok',      color: '#010101', placeholder: 'https://tiktok.com/@yourname' },
+  { id: 's-youtube',   label: 'YouTube',     color: '#FF0000', placeholder: 'https://youtube.com/@yourchannel' },
+  { id: 's-facebook',  label: 'Facebook',    color: '#1877F2', placeholder: 'https://facebook.com/yourname' },
+  { id: 's-telegram',  label: 'Telegram',    color: '#2AABEE', placeholder: 'https://t.me/yourname' },
+  { id: 's-website',   label: 'Website',     color: '#0f1f3d', placeholder: 'https://yourwebsite.com' },
+];
+
+let socialLinks = {}; // { 's-instagram': 'https://...', ... }
+
+function openSocialModal() {
+  if (!isAdmin) return;
+  const overlay = document.getElementById('social-overlay');
+  const fields  = document.getElementById('social-fields');
+  // Build fields
+  fields.innerHTML = SOCIAL_PLATFORMS.map(p => {
+    const btn = document.getElementById(p.id);
+    const svgIcon = btn ? btn.innerHTML.trim() : '';
+    return `
+    <div style="display:flex;flex-direction:column;gap:0.35rem">
+      <label style="font-size:0.72rem;font-weight:700;color:#4a5568;letter-spacing:0.4px;display:flex;align-items:center;gap:0.5rem">
+        <span style="width:24px;height:24px;border-radius:6px;background:${p.color};display:inline-flex;align-items:center;justify-content:center;color:white;flex-shrink:0">${svgIcon}</span>
+        ${p.label}
+        ${socialLinks[p.id] ? '<span style="margin-left:auto;font-size:0.65rem;color:#2e7d32;font-weight:600">✓ Linked</span>' : ''}
+      </label>
+      <input
+        type="url"
+        id="sf-${p.id}"
+        value="${socialLinks[p.id] || ''}"
+        placeholder="${p.placeholder}"
+        style="width:100%;padding:0.6rem 0.875rem;border-radius:8px;border:1.5px solid ${socialLinks[p.id] ? '#43a047' : '#e2d9cc'};font-size:0.85rem;font-family:'Inter',sans-serif;background:#f8f5ef;color:#1a1a2e;outline:none;box-sizing:border-box;transition:border-color 0.2s"
+        onfocus="this.style.borderColor='${p.color}';this.style.background='white'"
+        onblur="this.style.borderColor='${socialLinks[p.id] ? '#43a047' : '#e2d9cc'}';this.style.background='#f8f5ef'"
+      />
+    </div>`;
+  }).join('');
+
+  overlay.style.opacity = '1';
+  overlay.style.pointerEvents = 'all';
+}
+
+function closeSocialModal() {
+  const overlay = document.getElementById('social-overlay');
+  overlay.style.opacity = '0';
+  overlay.style.pointerEvents = 'none';
+}
+
+function saveSocialLinks() {
+  let count = 0;
+  SOCIAL_PLATFORMS.forEach(p => {
+    const input = document.getElementById('sf-' + p.id);
+    const val = input ? input.value.trim() : '';
+    const el = document.getElementById(p.id);
+    if (val) {
+      // Auto-prepend https:// if missing
+      const url = val.startsWith('http') ? val : 'https://' + val;
+      socialLinks[p.id] = url;
+      el.href = url;
+      el.style.display = 'flex';
+      count++;
+    } else {
+      socialLinks[p.id] = '';
+      el.href = '#';
+      el.style.display = 'none';
+    }
+  });
+
+  // Hide/show the "no socials" hint
+  const hint = document.getElementById('no-socials-hint');
+  hint.style.display = count > 0 ? 'none' : 'inline';
+
+  closeSocialModal();
+  toast(`✅ ${count} social link${count !== 1 ? 's' : ''} saved!`);
+}
+
+// Init: hide hint if socials already set, show otherwise
+function initSocials() {
+  const hint = document.getElementById('no-socials-hint');
+  const anyLinked = SOCIAL_PLATFORMS.some(p => socialLinks[p.id]);
+  hint.style.display = anyLinked ? 'none' : 'inline';
+}
+
+// ── FOOTER SERVICES ──
+function goToService() {
+  showPage('home');
+  setTimeout(() => {
+    const el = document.getElementById('services-grid');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 80);
+}
+
+function syncFooterServices() {
+  const cards = document.querySelectorAll('#services-grid .service-title');
+  const items  = document.querySelectorAll('#footer-services li button');
+  cards.forEach((card, i) => {
+    if (items[i]) items[i].textContent = card.innerText.trim() || items[i].textContent;
+  });
+}
+
+// Auto-sync footer whenever a service title is edited
+document.addEventListener('input', function(e) {
+  if (e.target.closest && e.target.closest('#services-grid')) syncFooterServices();
+});
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+renderSkills();
+renderTimelines();
+renderCerts();
+initPhotoDrag();
+initSocials();
+syncFooterServices();
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+// Start in locked visitor mode (admin must log in to edit)
+document.body.classList.remove('admin-active');
+isAdmin = false;
+</script>
+</body>
+</html>
